@@ -1,0 +1,27 @@
+{
+  "name": "html-master",
+  "version": "2.0.0",
+  "description": "Interactive HTML Learning Platform with Quizzes, Coding Challenges, Live Playground, Tag Cheatsheet, and Canvas Certificate Generator.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "dev": "npx serve . -p 3000",
+    "seed": "node scripts/seed.js",
+    "test": "node scripts/test-games.js",
+    "check": "node -e \"const fs=require('fs'),cp=require('child_process');['js/data','js/modules','js'].forEach(d=>fs.readdirSync(d).filter(f=>f.endsWith('.js')).forEach(f=>cp.execSync('node -c '+d+'/'+f)));console.log('All JS files syntax OK!')\""
+  },
+  "keywords": [
+    "html5",
+    "learning",
+    "quiz",
+    "playground",
+    "interactive",
+    "cheatsheet",
+    "certificate"
+  ],
+  "author": "HTML Master Team",
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "^7.6.0"
+  }
+}
