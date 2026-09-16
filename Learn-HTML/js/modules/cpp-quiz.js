@@ -30,6 +30,7 @@ window.HTMLMaster.modules.CppQuiz = (function() {
         <h2>C++ Knowledge Assessment</h2>
         <p>Test your C++ programming knowledge through objective technical MCQs. Your level is calculated only from your score.</p>
       </div>
+      <div id="logicVisualizerMount"></div>
       <div class="assessment-grid">
         ${assessments.map(item => `
           <article class="assessment-card">
@@ -42,6 +43,9 @@ window.HTMLMaster.modules.CppQuiz = (function() {
         `).join("")}
       </div>
     `;
+    if (window.HTMLMaster.modules.LogicVisualizer) {
+      window.HTMLMaster.modules.LogicVisualizer.mount(document.getElementById("logicVisualizerMount"));
+    }
   }
 
   function start(id) {

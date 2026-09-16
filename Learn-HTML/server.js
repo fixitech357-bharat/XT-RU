@@ -331,6 +331,30 @@ app.get("/api/stats/enrolled", async (req, res) => {
   }
 });
 
+app.post("/api/compiler/run", async (req, res) => {
+  const runtimeUrl = String(process.env.COMPILER_SERVICE_URL || "").replace(/\/$/, "");
+  if (!runtimeUrl) {
+    return res.status(503).json({ error: "Code runtime is not configured. Set COMPILER_SERVICE_URL to a Judge0-compatible open-source service." });
+  }
+  const languageIds = { cpp: 54, java: 62, csharp: 51, python: 71, sql: 82 };
+  const language = String(req.body.language || "");
+  const source = String(req.body.source || "");
+  if (!languageIds[language] || !source.trim()) return res.status(400).json({ error: "Choose a supported language and provide source code." });
+  try {
+    const response = await fetch(`${runtimeUrl}/submissions?base64_encoded=false&wait=true`, {
+      method: "POST",
+      headers: Object.assign({ "Content-Type": "application/json" }, process.env.COMPILER_API_KEY ? { "X-Auth-Token": process.env.COMPILER_API_KEY } : {}),
+      body: JSON.stringify({ language_id: languageIds[language], source_code: source, stdin: String(req.body.stdin || "") })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) return res.status(response.status).json({ error: result.message || "Compiler service rejected the request." });
+    res.json({ status: result.status && result.status.description, stdout: result.stdout || "", stderr: result.stderr || result.compile_output || "" });
+  } catch (error) {
+    console.error("Compiler request failed:", error.message);
+    res.status(502).json({ error: "Code runtime is unavailable." });
+  }
+});
+
 app.post("/api/admin/login", async (req, res) => {
   if (!adminEmail || !adminPassword) {
     return res.status(503).json({ error: "Admin credentials are not configured." });

@@ -263,6 +263,29 @@ nav button:hover > span:first-child,
   box-shadow: var(--shadow-md);
 }
 
+.logic-visualizer { margin: 18px 0; padding: 18px; background: var(--surface); border: 1px solid var(--border-medium); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.logic-visualizer-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.logic-visualizer-head h3 { margin-top: 4px; }
+.logic-track { height: 6px; margin: 16px 0; overflow: hidden; background: var(--surface-elevated); border-radius: var(--radius-full); }
+.logic-progress { height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), var(--accent-purple)); transition: width 0.5s ease; }
+.logic-stage { display: grid; grid-template-columns: 110px 1fr 150px; align-items: center; gap: 16px; padding: 16px; background: var(--code-bg); border: 1px solid var(--code-border); border-radius: var(--radius-md); }
+.logic-stage pre { color: var(--code-string); font-family: var(--font-mono); white-space: pre-wrap; }
+.logic-label { display: block; color: var(--text-dim); font-size: 11px; text-transform: uppercase; }
+.logic-memory strong { color: var(--gold); font-family: var(--font-mono); }
+.logic-stage p { grid-column: 1 / -1; color: var(--text-muted); margin: 0; }
+.lab-header { margin-bottom: 18px; }
+.lab-header h2 { margin: 5px 0; }
+.lab-header p { color: var(--text-muted); }
+.lab-controls { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 12px; }
+.lab-controls label { color: var(--text-muted); font-size: 12px; font-weight: 700; }
+.lab-controls select { display: block; min-width: 180px; margin-top: 5px; padding: 10px; color: var(--text-main); background: var(--surface-elevated); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); }
+.lab-workspace { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.lab-workspace textarea { width: 100%; min-height: 260px; resize: vertical; padding: 14px; color: var(--code-text); background: var(--code-bg); border: 1px solid var(--code-border); border-radius: var(--radius-md); font: 13px/1.6 var(--font-mono); }
+.lab-label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 12px; font-weight: 700; }
+.lab-output { margin-top: 12px; padding: 14px; background: var(--code-bg); border: 1px solid var(--code-border); border-radius: var(--radius-md); }
+.lab-output-head { display: flex; justify-content: space-between; color: var(--primary); font-weight: 700; }
+.lab-output pre { min-height: 90px; margin-top: 10px; color: var(--code-text); white-space: pre-wrap; font: 13px/1.6 var(--font-mono); }
+
 .assessment-hero,
 .results-hero {
   text-align: center;
@@ -382,6 +405,8 @@ nav button:hover > span:first-child,
 .technical-skill-card > span { color: var(--success); font-weight: 700; }
 
 @media (max-width: 680px) {
+  .logic-stage, .lab-workspace { grid-template-columns: 1fr; }
+  .lab-controls { align-items: stretch; flex-direction: column; }
   .technical-skill-card { grid-template-columns: 1fr 1fr; }
   .technical-skill-card small { grid-column: 1 / -1; }
   .skill-row { grid-template-columns: 1fr 48px; }

@@ -79,6 +79,9 @@
       <button data-view="view-cpp-quiz" onclick="window.HTMLMaster.modules.CppQuiz.openQuiz()">
         <span>🧠</span><span class="lbl">Assessments</span>
       </button>
+      <button data-view="view-technical-lab" onclick="window.HTMLMaster.modules.TechnicalLab.open()">
+        <span>⌘</span><span class="lbl">Code Studio</span>
+      </button>
       <button data-view="view-profile" onclick="window.HTMLMaster.modules.Profile.openProfile()">
         <span>&#128100;</span><span class="lbl">Profile</span>
       </button>
@@ -665,7 +668,18 @@ button:hover {
       <div id="cppQuizArea"></div>
     </section>
 
-    <!-- 11. ADMIN PANEL VIEW -->
+    <!-- 11. MULTI-LANGUAGE TECHNICAL PRACTICE STUDIO -->
+    <section id="view-technical-lab" class="view">
+      <div class="section-head">
+        <div class="head-left">
+          <button class="back-btn" onclick="window.HTMLMaster.goHome()">&larr; Back</button>
+          <h2>⌘ Technical Code Studio</h2>
+        </div>
+      </div>
+      <div id="technicalLabArea"></div>
+    </section>
+
+    <!-- 12. ADMIN PANEL VIEW -->
     <section id="view-admin" class="view">
       <div class="section-head">
         <div class="head-left">
@@ -717,7 +731,9 @@ button:hover {
   <script src="js/modules/games.js"></script>
   <script src="js/modules/leaderboard.js"></script>
   <script src="js/modules/profile.js"></script>
+  <script src="js/modules/logic-visualizer.js"></script>
   <script src="js/modules/cpp-quiz.js"></script>
+  <script src="js/modules/technical-lab.js"></script>
   <script src="js/modules/admin.js"></script>
 
   <!-- Application Bootstrap -->
