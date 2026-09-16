@@ -63,13 +63,24 @@ window.HTMLMaster.modules.Topics = (function() {
     try {
       const count = await window.HTMLMaster.modules.Storage.loadEnrolledCount();
       countElement.textContent = count.toLocaleString();
+      if (window.HTMLMaster.modules.Admin) {
+        window.HTMLMaster.modules.Admin.onCountUpdate(count);
+      }
     } catch (e) {
       const cachedCount = window.HTMLMaster.modules.Storage.getUsers().length;
       countElement.textContent = cachedCount.toLocaleString();
     }
   }
 
-  setInterval(updateEnrolledCount, 30000);
+  setInterval(updateEnrolledCount, 15000);
+  document.addEventListener("visibilitychange", function() {
+    if (!document.hidden) updateEnrolledCount();
+  });
+  window.addEventListener("focus", function() { updateEnrolledCount(); });
+  window.addEventListener("storage", function(event) {
+    if (event.key === "htmlMasterUsers") updateEnrolledCount();
+  });
+  window.addEventListener("xtru:registration-complete", function() { updateEnrolledCount(); });
 
   function openLevel(key) {
     currentLevel = key;
@@ -160,6 +171,7 @@ window.HTMLMaster.modules.Topics = (function() {
     nextTopic: nextTopic,
     backToLevel: backToLevel,
     updateProgressBar: updateProgressBar,
+    updateEnrolledCount: updateEnrolledCount,
     getCurrentLevel: () => currentLevel,
     getCurrentTopicIndex: () => currentTopicIndex
   };

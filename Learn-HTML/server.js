@@ -62,6 +62,19 @@ function hashOtp(otp) {
   return crypto.createHmac("sha256", process.env.OTP_SECRET).update(otp).digest("hex");
 }
 
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(String(password), salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, stored) {
+  if (!stored || !stored.includes(":")) return false;
+  const [salt, hash] = stored.split(":");
+  const test = crypto.scryptSync(String(password), salt, 64).toString("hex");
+  return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(test, "hex"));
+}
+
 function publicUser(user) {
   return {
     id: user.userId || String(user._id),
@@ -69,7 +82,8 @@ function publicUser(user) {
     email: user.email,
     phone: user.phone,
     dob: user.dob,
-    joined: user.joined
+    joined: user.joined,
+    hasPassword: !!user.passwordHash
   };
 }
 
@@ -110,20 +124,30 @@ function validProfile(profile) {
     profile.phone && profile.phone.replace(/\D/g, "").length >= 10 && profile.dob;
 }
 
+// Every successful registration/OTP action invalidates the cached live count
+// so subsequent /api/stats/enrolled calls always read the freshest total.
+let liveCountCache = { count: 0, at: 0 };
+
 app.post("/api/auth/request-otp", async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
-    const purpose = req.body.purpose === "login" ? "login" : "register";
+    const purpose = ["login", "register", "password", "profile"].includes(req.body.purpose) ? req.body.purpose : "register";
     if (!email || !email.includes("@")) return res.status(400).json({ error: "Enter a valid email address." });
 
     const existing = await userCollection().findOne({ email });
-    if (purpose === "login" && !existing) {
+    if ((purpose === "login" || purpose === "password" || purpose === "profile") && !existing) {
       return res.status(404).json({ error: "No learner profile was found with that email." });
     }
     if (purpose === "register" && existing) {
       return res.status(409).json({ error: "That email is already registered. Use Log In instead." });
     }
     if (purpose === "register" && !validProfile(req.body)) {
+      return res.status(400).json({ error: "Complete your name, mobile number, and date of birth first." });
+    }
+    if (purpose === "password" && String(req.body.newPassword || "").length < 6) {
+      return res.status(400).json({ error: "Your new password must be at least 6 characters long." });
+    }
+    if (purpose === "profile" && !validProfile(req.body)) {
       return res.status(400).json({ error: "Complete your name, mobile number, and date of birth first." });
     }
 
@@ -133,21 +157,30 @@ app.post("/api/auth/request-otp", async (req, res) => {
       email,
       purpose,
       codeHash: hashOtp(otp),
-      profile: purpose === "register" ? {
+      profile: purpose === "register" || purpose === "profile" ? {
         name: req.body.name.trim(),
         phone: req.body.phone.trim(),
-        dob: req.body.dob
+        dob: req.body.dob,
+        emoji: req.body.emoji || "🧑‍💻"
       } : null,
+      passwordHash: purpose === "password" ? hashPassword(req.body.newPassword) : null,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       attempts: 0
     });
 
+    const subject = purpose === "password"
+      ? "Your XTuti RiseUp password reset code"
+      : "Your XTuti RiseUp verification code";
+    const intro = purpose === "password"
+      ? "Use this code to update your XTuti RiseUp password:"
+      : "Your XTuti RiseUp verification code is:";
+
     await smtp.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: email,
-      subject: "Your XTuti RiseUp verification code",
-      text: `Your verification code is ${otp}. It expires in 10 minutes.`,
-      html: `<p>Your XTuti RiseUp verification code is:</p><h2>${otp}</h2><p>This code expires in 10 minutes.</p>`
+      subject,
+      text: `${intro.replace(":", "")} ${otp}. It expires in 10 minutes.`,
+      html: `<p>${intro}</p><h2>${otp}</h2><p>This code expires in 10 minutes.</p>`
     });
     res.json({ message: "Verification code sent." });
   } catch (error) {
@@ -159,7 +192,7 @@ app.post("/api/auth/request-otp", async (req, res) => {
 app.post("/api/auth/verify-otp", async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
-    const purpose = req.body.purpose === "login" ? "login" : "register";
+    const purpose = ["login", "register", "password", "profile"].includes(req.body.purpose) ? req.body.purpose : "register";
     const otp = String(req.body.otp || "").trim();
     const record = await otpCollection().findOne({ email, purpose });
 
@@ -185,6 +218,25 @@ app.post("/api/auth/verify-otp", async (req, res) => {
       };
       const result = await userCollection().insertOne(user);
       user._id = result.insertedId;
+      invalidateLiveCount();
+    } else if (purpose === "password") {
+      await userCollection().updateOne(
+        { email },
+        { $set: { passwordHash: record.passwordHash, updatedAt: new Date() } }
+      );
+      user = await userCollection().findOne({ email });
+    } else if (purpose === "profile") {
+      await userCollection().updateOne(
+        { email },
+        { $set: {
+          name: record.profile.name,
+          phone: record.profile.phone,
+          dob: record.profile.dob,
+          emoji: record.profile.emoji,
+          updatedAt: new Date()
+        } }
+      );
+      user = await userCollection().findOne({ email });
     } else {
       user = await userCollection().findOne({ email });
     }
@@ -203,6 +255,9 @@ app.put("/api/learners/:email", async (req, res) => {
     if (!learner.userId || !learner.name || learner.email !== email) {
       return res.status(400).json({ error: "Invalid learner data." });
     }
+    // Never let a profile sync wipe out an existing password hash.
+    const existing = await userCollection().findOne({ email }, { projection: { passwordHash: 1 } });
+    if (existing && existing.passwordHash) learner.passwordHash = existing.passwordHash;
     await userCollection().updateOne({ email }, { $set: learner }, { upsert: true });
     res.json({ user: learner });
   } catch (error) {
@@ -223,13 +278,81 @@ app.get("/api/leaderboard", async (req, res) => {
   }
 });
 
+function invalidateLiveCount() {
+  liveCountCache = { count: 0, at: 0 };
+}
+
+async function getLiveUserCount() {
+  const fresh = Date.now() - liveCountCache.at < 3000;
+  if (fresh) return liveCountCache.count;
+  const count = await userCollection().countDocuments();
+  liveCountCache = { count, at: Date.now() };
+  return count;
+}
+
 app.get("/api/stats/enrolled", async (req, res) => {
   try {
-    const count = await userCollection().countDocuments();
-    res.json({ count });
+    const count = await getLiveUserCount();
+    res.json({ count, generatedAt: new Date().toISOString() });
   } catch (error) {
     console.error("Enrollment count load failed:", error);
     res.status(500).json({ error: "Could not load enrollment count." });
+  }
+});
+
+app.get("/api/admin/stats", async (req, res) => {
+  try {
+    const total = await getLiveUserCount();
+    const withPassword = await userCollection().countDocuments({ passwordHash: { $exists: true, $ne: null } });
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const today = await userCollection().countDocuments({ joined: { $gte: startOfDay.toISOString() } });
+    res.json({ total, withPassword, today, generatedAt: new Date().toISOString() });
+  } catch (error) {
+    console.error("Admin stats load failed:", error);
+    res.status(500).json({ error: "Could not load admin stats." });
+  }
+});
+
+app.get("/api/admin/users", async (req, res) => {
+  try {
+    const users = await userCollection()
+      .find({}, { projection: { userId: 1, name: 1, email: 1, phone: 1, dob: 1, joined: 1, passwordHash: 1 } })
+      .sort({ joined: -1 })
+      .limit(200)
+      .toArray();
+    res.json({
+      users: users.map(user => ({
+        id: user.userId || String(user._id),
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        dob: user.dob,
+        joined: user.joined,
+        hasPassword: !!user.passwordHash
+      }))
+    });
+  } catch (error) {
+    console.error("Admin users load failed:", error);
+    res.status(500).json({ error: "Could not load admin users." });
+  }
+});
+
+app.post("/api/auth/login-password", async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    const password = String(req.body.password || "");
+    const user = await userCollection().findOne({ email });
+    if (!user || !user.passwordHash) {
+      return res.status(404).json({ error: "This account has no password set yet. Use the email OTP to log in." });
+    }
+    if (!verifyPassword(password, user.passwordHash)) {
+      return res.status(401).json({ error: "That password is incorrect." });
+    }
+    res.json({ user: publicUser(user) });
+  } catch (error) {
+    console.error("Password login failed:", error);
+    res.status(500).json({ error: "Could not log in with password." });
   }
 });
 

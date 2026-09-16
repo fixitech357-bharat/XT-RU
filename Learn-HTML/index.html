@@ -77,7 +77,10 @@
         <span>🏆</span><span class="lbl">Leaderboard</span>
       </button>
       <button data-view="view-profile" onclick="window.HTMLMaster.modules.Profile.openProfile()">
-        <span>👤</span><span class="lbl">Profile</span>
+        <span>&#128100;</span><span class="lbl">Profile</span>
+      </button>
+      <button data-view="view-admin" onclick="window.HTMLMaster.modules.Admin.openAdmin()">
+        <span>&#128737;</span><span class="lbl">Admin</span>
       </button>
     </nav>
 
@@ -648,6 +651,17 @@ button:hover {
       <div id="profileArea"></div>
     </section>
 
+    <!-- 11. ADMIN PANEL VIEW -->
+    <section id="view-admin" class="view">
+      <div class="section-head">
+        <div class="head-left">
+          <button class="back-btn" onclick="window.HTMLMaster.goHome()">&larr; Back</button>
+          <h2>🛡️ Admin Panel &mdash; Live Registered Users</h2>
+        </div>
+      </div>
+      <div id="adminArea"></div>
+    </section>
+
   </main>
 
   <!-- ================= FOOTER ================= -->
@@ -687,6 +701,7 @@ button:hover {
   <script src="js/modules/games.js"></script>
   <script src="js/modules/leaderboard.js"></script>
   <script src="js/modules/profile.js"></script>
+  <script src="js/modules/admin.js"></script>
 
   <!-- Application Bootstrap -->
   <script src="js/app.js"></script>

@@ -59,10 +59,92 @@ window.HTMLMaster.modules.Storage = (function() {
   }
 
   async function loadEnrolledCount() {
-    const response = await fetch("/api/stats/enrolled");
+    const response = await fetch("/api/stats/enrolled", { cache: "no-store" });
     if (!response.ok) throw new Error("Enrollment count request failed");
     const body = await response.json();
     return Number.isFinite(body.count) ? body.count : 0;
+  }
+
+  async function loadAdminStats() {
+    const response = await fetch("/api/admin/stats", { cache: "no-store" });
+    if (!response.ok) throw new Error("Admin stats request failed");
+    return response.json();
+  }
+
+  async function loadAdminUsers() {
+    const response = await fetch("/api/admin/users", { cache: "no-store" });
+    if (!response.ok) throw new Error("Admin users request failed");
+    const body = await response.json();
+    return Array.isArray(body.users) ? body.users : [];
+  }
+
+  async function requestPasswordOtp(email, newPassword) {
+    const response = await fetch("/api/auth/request-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, purpose: "password", newPassword })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Could not send the password reset code.");
+    return body;
+  }
+
+  async function verifyPasswordOtp(email, otp) {
+    const response = await fetch("/api/auth/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, purpose: "password", otp })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Could not verify the password reset code.");
+    return body;
+  }
+
+  async function requestProfileOtp(profile) {
+    const response = await fetch("/api/auth/request-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({}, profile, { purpose: "profile" }))
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Could not send the profile update code.");
+    return body;
+  }
+
+  async function verifyProfileOtp(email, otp) {
+    const response = await fetch("/api/auth/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, purpose: "profile", otp })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Could not verify the profile update code.");
+    return body;
+  }
+
+  async function loginWithPassword(email, password) {
+    const response = await fetch("/api/auth/login-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Could not log in with password.");
+    return body;
+  }
+
+  function updateProfile(patch) {
+    const users = getUsers();
+    const id = getCurrentUserId();
+    const idx = users.findIndex(u => u.id === id);
+    if (idx < 0) return null;
+    const allowed = ["name", "phone", "dob", "emoji", "email"];
+    allowed.forEach(key => {
+      if (patch[key] !== undefined) users[idx][key] = patch[key];
+    });
+    saveUsers(users);
+    syncUser(users[idx]);
+    return users[idx];
   }
 
   function getCurrentUserId() {
@@ -389,6 +471,14 @@ window.HTMLMaster.modules.Storage = (function() {
     syncAllUsers: syncAllUsers,
     loadLeaderboardUsers: loadLeaderboardUsers,
     loadEnrolledCount: loadEnrolledCount,
+    loadAdminStats: loadAdminStats,
+    loadAdminUsers: loadAdminUsers,
+    requestPasswordOtp: requestPasswordOtp,
+    verifyPasswordOtp: verifyPasswordOtp,
+    requestProfileOtp: requestProfileOtp,
+    verifyProfileOtp: verifyProfileOtp,
+    loginWithPassword: loginWithPassword,
+    updateProfile: updateProfile,
     saveUsers: saveUsers,
     getCurrentUserId: getCurrentUserId,
     setCurrentUserId: setCurrentUserId,
