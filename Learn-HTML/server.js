@@ -18,16 +18,41 @@ const port = Number(process.env.PORT || 3001);
 const mongoClient = new MongoClient(process.env.MONGODB_URI);
 const otpCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("email_otps");
 const userCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("learners");
+let databaseReady;
 
 const smtp = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: Number(process.env.SMTP_PORT || 465),
-  secure: String(process.env.SMTP_SECURE || "true") === "true",
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: String(process.env.SMTP_SECURE || "false") === "true",
+  family: 4,
+  tls: {
+    rejectUnauthorized: String(process.env.SMTP_TLS_REJECT_UNAUTHORIZED || "true") !== "false"
+  },
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
 });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
+
+async function connectDatabase() {
+  if (!databaseReady) {
+    databaseReady = mongoClient.connect().then(async () => {
+      await otpCollection().createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+      await userCollection().createIndex({ email: 1 }, { unique: true });
+    });
+  }
+  return databaseReady;
+}
+
+app.use("/api", async (req, res, next) => {
+  try {
+    await connectDatabase();
+    next();
+  } catch (error) {
+    console.error("MongoDB connection failed:", error.message);
+    res.status(503).json({ error: "Database is temporarily unavailable." });
+  }
+});
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -198,14 +223,26 @@ app.get("/api/leaderboard", async (req, res) => {
   }
 });
 
+app.get("/api/stats/enrolled", async (req, res) => {
+  try {
+    const count = await userCollection().countDocuments();
+    res.json({ count });
+  } catch (error) {
+    console.error("Enrollment count load failed:", error);
+    res.status(500).json({ error: "Could not load enrollment count." });
+  }
+});
+
 async function start() {
-  await mongoClient.connect();
-  await otpCollection().createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-  await userCollection().createIndex({ email: 1 }, { unique: true });
+  await connectDatabase();
   app.listen(port, () => console.log(`XTuti RiseUp running at http://localhost:${port}`));
 }
 
-start().catch(error => {
-  console.error("Could not connect to MongoDB:", error.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  start().catch(error => {
+    console.error("Could not connect to MongoDB:", error.message);
+    process.exit(1);
+  });
+}
+
+module.exports = app;

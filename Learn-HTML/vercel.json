@@ -3,6 +3,11 @@
   "name": "html-master",
   "cleanUrls": true,
   "trailingSlash": false,
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

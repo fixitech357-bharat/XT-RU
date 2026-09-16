@@ -70,7 +70,11 @@ window.HTMLMaster = window.HTMLMaster || {};
   function init() {
     const Storage = window.HTMLMaster.modules.Storage;
     const currentUser = Storage.getCurrentUser();
-    Storage.syncAllUsers();
+    Storage.syncAllUsers().then(result => {
+      if (result.total > 0) {
+        console.info(`Learner migration: ${result.synced}/${result.total} local users synced to MongoDB.`);
+      }
+    });
 
     // Clear the profile created by older builds so first launch can show registration.
     if (currentUser && currentUser.name === "Learner" && !currentUser.email && !currentUser.phone && !currentUser.dob) {

@@ -54,7 +54,22 @@ window.HTMLMaster.modules.Topics = (function() {
     });
 
     updateProgressBar();
+    updateEnrolledCount();
   }
+
+  async function updateEnrolledCount() {
+    const countElement = document.getElementById("enrolledUserCount");
+    if (!countElement) return;
+    try {
+      const count = await window.HTMLMaster.modules.Storage.loadEnrolledCount();
+      countElement.textContent = count.toLocaleString();
+    } catch (e) {
+      const cachedCount = window.HTMLMaster.modules.Storage.getUsers().length;
+      countElement.textContent = cachedCount.toLocaleString();
+    }
+  }
+
+  setInterval(updateEnrolledCount, 30000);
 
   function openLevel(key) {
     currentLevel = key;

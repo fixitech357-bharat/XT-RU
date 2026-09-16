@@ -31,17 +31,24 @@ window.HTMLMaster.modules.Storage = (function() {
     } catch (e) {}
   }
 
-  function syncUser(user) {
-    if (!user || !user.email) return;
-    fetch(`/api/learners/${encodeURIComponent(user.email)}`, {
+  async function syncUser(user) {
+    if (!user || !user.email) return false;
+    try {
+      const response = await fetch(`/api/learners/${encodeURIComponent(user.email)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(user)
-    }).catch(() => {});
+      });
+      return response.ok;
+    } catch (e) {
+      return false;
+    }
   }
 
-  function syncAllUsers() {
-    getUsers().forEach(syncUser);
+  async function syncAllUsers() {
+    const users = getUsers().filter(user => user.email);
+    const results = await Promise.all(users.map(syncUser));
+    return { total: users.length, synced: results.filter(Boolean).length };
   }
 
   async function loadLeaderboardUsers() {
@@ -49,6 +56,13 @@ window.HTMLMaster.modules.Storage = (function() {
     if (!response.ok) throw new Error("Leaderboard request failed");
     const body = await response.json();
     return Array.isArray(body.users) ? body.users : [];
+  }
+
+  async function loadEnrolledCount() {
+    const response = await fetch("/api/stats/enrolled");
+    if (!response.ok) throw new Error("Enrollment count request failed");
+    const body = await response.json();
+    return Number.isFinite(body.count) ? body.count : 0;
   }
 
   function getCurrentUserId() {
@@ -374,6 +388,7 @@ window.HTMLMaster.modules.Storage = (function() {
     syncUser: syncUser,
     syncAllUsers: syncAllUsers,
     loadLeaderboardUsers: loadLeaderboardUsers,
+    loadEnrolledCount: loadEnrolledCount,
     saveUsers: saveUsers,
     getCurrentUserId: getCurrentUserId,
     setCurrentUserId: setCurrentUserId,
