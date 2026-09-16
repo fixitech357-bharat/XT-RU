@@ -142,6 +142,7 @@ function storedLearner(body) {
     challenges: body.challenges || {},
     achievements: body.achievements || [],
     results: body.results || [],
+    assessmentAttempts: body.assessmentAttempts || [],
     exam: body.exam || null,
     playgroundRuns: Number(body.playgroundRuns || 0),
     gameScores: body.gameScores || null,

@@ -48,6 +48,20 @@ window.HTMLMaster.modules.Profile = (function() {
 
     const examPct = user.exam ? Math.round((user.exam.score / user.exam.total) * 100) : null;
     const rankStr = getRankFor(user);
+    const assessmentAttempts = Array.isArray(user.assessmentAttempts) ? user.assessmentAttempts : [];
+    const latestCpp = assessmentAttempts.filter(attempt => attempt.language === "C++").slice(-1)[0];
+    const technicalSkillsHTML = `
+      <section class="technical-skills-panel">
+        <h3>🧠 Technical Skills</h3>
+        <div class="technical-skill-card">
+          <div><strong>C++</strong><span>Objective assessment</span></div>
+          <b>${latestCpp ? latestCpp.percentage + "%" : "Not assessed"}</b>
+          <span>${latestCpp ? getAssessmentLevel(latestCpp.percentage) : "Complete an assessment"}</span>
+          <small>${latestCpp ? `Attempts: ${assessmentAttempts.filter(attempt => attempt.language === "C++").length} · Last: ${formatDate(latestCpp.date)}` : "No attempts yet"}</small>
+        </div>
+        <button class="btn ghost sm" onclick="window.HTMLMaster.modules.CppQuiz.openQuiz()">Take C++ Assessment &rarr;</button>
+      </section>
+    `;
 
     // Achievements Showcase HTML
     const allAchievements = window.HTMLMaster.data.ACHIEVEMENTS || [];
@@ -154,6 +168,8 @@ window.HTMLMaster.modules.Profile = (function() {
         </div>
       </div>
 
+      ${technicalSkillsHTML}
+
       <h3 style="margin: 24px 0 14px; font-size: 18px; color: var(--gold); display: flex; align-items: center; gap: 8px;">
         🏆 Earned Badges & Achievements
       </h3>
@@ -167,6 +183,14 @@ window.HTMLMaster.modules.Profile = (function() {
 
     renderNavUser();
     updateProfileEnrolledCount();
+  }
+
+  function getAssessmentLevel(score) {
+    if (score >= 85) return "Expert";
+    if (score >= 70) return "Advanced";
+    if (score >= 55) return "Intermediate";
+    if (score >= 40) return "Foundation";
+    return "Beginner";
   }
 
   async function updateProfileEnrolledCount() {

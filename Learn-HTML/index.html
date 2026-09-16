@@ -76,6 +76,9 @@
       <button data-view="view-leaderboard" onclick="window.HTMLMaster.modules.Leaderboard.openLeaderboard()">
         <span>🏆</span><span class="lbl">Leaderboard</span>
       </button>
+      <button data-view="view-cpp-quiz" onclick="window.HTMLMaster.modules.CppQuiz.openQuiz()">
+        <span>🧠</span><span class="lbl">C++ Quiz</span>
+      </button>
       <button data-view="view-profile" onclick="window.HTMLMaster.modules.Profile.openProfile()">
         <span>&#128100;</span><span class="lbl">Profile</span>
       </button>
@@ -651,6 +654,17 @@ button:hover {
       <div id="profileArea"></div>
     </section>
 
+    <!-- 10. C++ TECHNICAL ASSESSMENT -->
+    <section id="view-cpp-quiz" class="view">
+      <div class="section-head">
+        <div class="head-left">
+          <button class="back-btn" onclick="window.HTMLMaster.goHome()">&larr; Back</button>
+          <h2>🧠 C++ Technical Assessment</h2>
+        </div>
+      </div>
+      <div id="cppQuizArea"></div>
+    </section>
+
     <!-- 11. ADMIN PANEL VIEW -->
     <section id="view-admin" class="view">
       <div class="section-head">
@@ -686,6 +700,7 @@ button:hover {
   <script src="js/data/cheatsheet.js"></script>
   <script src="js/data/challenges.js"></script>
   <script src="js/data/achievements.js"></script>
+  <script src="js/data/cpp-assessments.js"></script>
 
   <!-- Feature Modules -->
   <script src="js/modules/background.js"></script>
@@ -701,6 +716,7 @@ button:hover {
   <script src="js/modules/games.js"></script>
   <script src="js/modules/leaderboard.js"></script>
   <script src="js/modules/profile.js"></script>
+  <script src="js/modules/cpp-quiz.js"></script>
   <script src="js/modules/admin.js"></script>
 
   <!-- Application Bootstrap -->
