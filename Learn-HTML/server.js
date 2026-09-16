@@ -19,6 +19,7 @@ const adminEmail = normalizeEmail(process.env.ADMIN_EMAIL);
 const adminPassword = String(process.env.ADMIN_PASSWORD || "");
 const otpCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("email_otps");
 const userCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("learners");
+const adminCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("admin_users");
 let databaseReady;
 
 const smtp = nodemailer.createTransport({
@@ -43,6 +44,19 @@ async function connectDatabase() {
     databaseReady = mongoClient.connect().then(async () => {
       await otpCollection().createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
       await userCollection().createIndex({ email: 1 }, { unique: true });
+      await adminCollection().createIndex({ email: 1 }, { unique: true });
+      if (adminEmail && adminPassword) {
+        await adminCollection().updateOne(
+          { email: adminEmail },
+          { $setOnInsert: {
+            email: adminEmail,
+            role: "ADMIN",
+            passwordHash: hashPassword(adminPassword),
+            createdAt: new Date()
+          } },
+          { upsert: true }
+        );
+      }
     });
   }
   return databaseReady;
@@ -356,12 +370,10 @@ app.post("/api/compiler/run", async (req, res) => {
 });
 
 app.post("/api/admin/login", async (req, res) => {
-  if (!adminEmail || !adminPassword) {
-    return res.status(503).json({ error: "Admin credentials are not configured." });
-  }
   const email = normalizeEmail(req.body.email);
   const password = String(req.body.password || "");
-  if (email !== adminEmail || password !== adminPassword) {
+  const admin = await adminCollection().findOne({ email, role: "ADMIN" });
+  if (!admin || !verifyPassword(password, admin.passwordHash)) {
     return res.status(401).json({ error: "Invalid admin credentials." });
   }
   res.setHeader("Set-Cookie", `xtru_admin=${signAdminToken()}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=28800`);
