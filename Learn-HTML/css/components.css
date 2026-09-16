@@ -323,6 +323,32 @@ nav button:hover > span:first-child,
 .arcade-simulation pre { margin: 12px 0 8px; color: var(--code-string); font: 13px/1.5 var(--font-mono); white-space: pre-wrap; }
 .arcade-memory-state { padding: 8px; color: var(--gold); background: rgba(251, 191, 36, 0.1); border-radius: var(--radius-sm); font: 12px var(--font-mono); }
 .arcade-simulation p { margin-top: 10px; color: var(--text-muted); font-size: 12px; }
+.arcade-live-scene { min-height: 86px; display: grid; place-items: center; margin-bottom: 10px; padding: 12px; overflow: hidden; background: rgba(9, 14, 26, 0.72); border: 1px solid var(--border-medium); border-radius: var(--radius-md); }
+.switch-scene { display: flex; align-items: center; gap: 8px; width: 92%; color: var(--text-muted); }
+.switch-scene button { position: relative; width: 42px; height: 24px; padding: 3px; background: var(--surface-elevated); border: 1px solid var(--border-bright); border-radius: 20px; cursor: pointer; }
+.switch-scene button span { display: block; width: 16px; height: 16px; background: var(--text-muted); border-radius: 50%; transition: transform .3s ease, background .3s ease; }
+.switch-scene button.on span { transform: translateX(17px); background: var(--success); box-shadow: 0 0 12px var(--success-glow); }
+.wire { flex: 1; height: 4px; background: var(--border-bright); position: relative; }
+.switch-scene button.on + .wire { background: linear-gradient(90deg, var(--success), var(--primary)); box-shadow: 0 0 12px var(--success-glow); }
+.bulb { width: 32px; height: 32px; border: 2px solid var(--gold); border-radius: 50%; display: grid; place-items: center; }
+.bulb i { width: 12px; height: 12px; background: var(--text-dim); border-radius: 50%; }
+.switch-scene button.on ~ .bulb i { background: var(--gold); box-shadow: 0 0 18px var(--gold-glow); }
+.switch-scene small { position: absolute; margin-top: 58px; color: var(--text-dim); }
+.runner-scene { position: relative; width: 92%; height: 38px; border-bottom: 2px solid var(--primary); }
+.runner-character { position: absolute; left: 8%; color: var(--success); font-size: 24px; transition: left .5s ease; animation: arcade-runner 2s ease-in-out infinite alternate; }
+.runner-finish { position: absolute; right: 0; color: var(--gold); font: 10px var(--font-mono); }
+@keyframes arcade-runner { to { left: 80%; } }
+.memory-scene { display: flex; align-items: center; gap: 10px; color: var(--primary); font: 12px var(--font-mono); }
+.memory-scene b { color: var(--gold); font-size: 22px; }
+.memory-box { padding: 8px 16px; color: var(--text-muted); background: var(--surface-elevated); border: 1px solid var(--border-bright); border-radius: var(--radius-sm); text-align: center; }
+.memory-box strong { color: var(--gold); font-size: 18px; }
+.sql-scene { display: flex; align-items: center; gap: 7px; color: var(--primary); font: 11px var(--font-mono); }
+.sql-scene b { color: var(--success); animation: sql-flow 1.2s ease-in-out infinite alternate; }
+@keyframes sql-flow { to { transform: translateX(4px); color: var(--gold); } }
+.array-scene { display: flex; gap: 5px; position: relative; color: var(--code-string); font: 13px var(--font-mono); }
+.array-scene span { padding: 10px 8px; background: var(--surface-elevated); border: 1px solid var(--border-medium); border-radius: 4px; }
+.array-scene i { position: absolute; inset: -3px auto -3px 0; width: 39px; border: 2px solid var(--gold); border-radius: 4px; animation: array-scan 2.4s linear infinite; }
+@keyframes array-scan { to { transform: translateX(78px); } }
 .arcade-choices { display: grid; gap: 8px; margin-top: 14px; }
 .arcade-choices button { padding: 12px; color: var(--text-main); text-align: left; background: var(--surface); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); cursor: pointer; font: inherit; }
 .arcade-choices button:hover { border-color: var(--primary); background: var(--surface-hover); }
