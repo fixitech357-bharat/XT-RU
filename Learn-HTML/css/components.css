@@ -349,6 +349,15 @@ nav button:hover > span:first-child,
 .array-scene span { padding: 10px 8px; background: var(--surface-elevated); border: 1px solid var(--border-medium); border-radius: 4px; }
 .array-scene i { position: absolute; inset: -3px auto -3px 0; width: 39px; border: 2px solid var(--gold); border-radius: 4px; animation: array-scan 2.4s linear infinite; }
 @keyframes array-scan { to { transform: translateX(78px); } }
+.build-scene, .debug-scene, .match-scene, .maze-scene, .speed-scene, .boss-scene { display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; width: 100%; min-height: 48px; color: var(--primary); font: 12px var(--font-mono); }
+.build-node, .bug-node { padding: 8px 11px; background: var(--surface-elevated); border: 1px solid var(--border-bright); border-radius: 6px; }
+.build-scene b, .match-scene b, .maze-scene b, .debug-scene b { color: var(--success); animation: scene-pulse 1s ease-in-out infinite alternate; }
+.build-scene small, .debug-scene small { position: absolute; bottom: -4px; color: var(--text-dim); font: 10px var(--font-sans); }
+.bug-node { color: var(--danger); border-color: var(--danger-border); animation: bug-flash 1s ease-in-out infinite alternate; }
+.speed-light { width: 18px; height: 18px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 18px var(--gold-glow); animation: scene-pulse .8s ease-in-out infinite alternate; }
+.boss-scene { color: var(--gold); font-size: 16px; }
+@keyframes scene-pulse { to { transform: scale(1.1); color: var(--gold); } }
+@keyframes bug-flash { to { box-shadow: 0 0 14px var(--danger-glow); } }
 .arcade-choices { display: grid; gap: 8px; margin-top: 14px; }
 .arcade-choices button { padding: 12px; color: var(--text-main); text-align: left; background: var(--surface); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); cursor: pointer; font: inherit; }
 .arcade-choices button:hover { border-color: var(--primary); background: var(--surface-hover); }

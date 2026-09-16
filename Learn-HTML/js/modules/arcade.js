@@ -64,6 +64,54 @@ window.HTMLMaster.modules.Arcade = (function() {
   }
   function stepsFor(game) {
     const title = game.title.toLowerCase();
+    if (title.includes("binary search")) return [
+      { code: "low = 0; high = 7", memory: "range: [0..7]", flow: "Set the search boundaries", position: 8 },
+      { code: "mid = (low + high) / 2", memory: "mid: 3", flow: "Inspect the middle item", position: 36 },
+      { code: "target > items[mid]", memory: "low: 4", flow: "Discard the lower half", position: 64 },
+      { code: "return index", memory: "found: target", flow: "Repeat until the target is found", position: 92 }
+    ];
+    if (title.includes("stack")) return [
+      { code: "push(10)", memory: "top: 10", flow: "Place an item on the stack", position: 8 },
+      { code: "push(20)", memory: "top: 20", flow: "The newest item becomes top", position: 36 },
+      { code: "peek()", memory: "read: 20", flow: "Inspect without removing", position: 64 },
+      { code: "pop()", memory: "removed: 20", flow: "Last in, first out", position: 92 }
+    ];
+    if (title.includes("queue")) return [
+      { code: "enqueue(A)", memory: "front: A", flow: "Join the back of the queue", position: 8 },
+      { code: "enqueue(B)", memory: "A -> B", flow: "Keep arrival order", position: 36 },
+      { code: "dequeue()", memory: "removed: A", flow: "Serve the oldest item", position: 64 },
+      { code: "dequeue()", memory: "served: B", flow: "First in, first out", position: 92 }
+    ];
+    if (title.includes("linked list")) return [
+      { code: "node = head", memory: "current: head", flow: "Start at the first node", position: 8 },
+      { code: "node = node.next", memory: "current: node 2", flow: "Follow the next reference", position: 36 },
+      { code: "node = node.next", memory: "current: node 3", flow: "Traverse one link", position: 64 },
+      { code: "node == null", memory: "end: NULL", flow: "Stop at the end of the list", position: 92 }
+    ];
+    if (title.includes("dom") || title.includes("html tag") || title.includes("web page")) return [
+      { code: "document.querySelector()", memory: "node: <button>", flow: "Find the element", position: 8 },
+      { code: "element.addEventListener()", memory: "event: click", flow: "Connect the user action", position: 36 },
+      { code: "element.classList.add()", memory: "class: active", flow: "Update the DOM", position: 64 },
+      { code: "render()", memory: "screen: updated", flow: "Show the new interface", position: 92 }
+    ];
+    if (title.includes("css") || title.includes("flexbox") || title.includes("grid")) return [
+      { code: "display: flex", memory: "layout: row", flow: "Create the layout context", position: 8 },
+      { code: "gap: 16px", memory: "space: 16px", flow: "Add consistent spacing", position: 36 },
+      { code: "align-items: center", memory: "cross-axis: centered", flow: "Align the children", position: 64 },
+      { code: "render layout", memory: "screen: balanced", flow: "Paint the final layout", position: 92 }
+    ];
+    if (title.includes("sql") || title.includes("query") || title.includes("join") || game.category.includes("DBMS")) return [
+      { code: "FROM users", memory: "rows: 12", flow: "Read the source table", position: 8 },
+      { code: "JOIN skills", memory: "rows: 18", flow: "Connect related records", position: 36 },
+      { code: "WHERE score > 70", memory: "rows: 8", flow: "Filter the result", position: 64 },
+      { code: "SELECT result", memory: "rows: 8", flow: "Return useful data", position: 92 }
+    ];
+    if (title.includes("class") || title.includes("object") || title.includes("inheritance") || title.includes("polymorphism")) return [
+      { code: "class Base {}", memory: "type: Base", flow: "Define shared behavior", position: 8 },
+      { code: "class Child : Base", memory: "type: Child", flow: "Reuse the base contract", position: 36 },
+      { code: "Base* item = new Child", memory: "dispatch: virtual", flow: "Choose the runtime behavior", position: 64 },
+      { code: "item->run()", memory: "method: Child", flow: "Execute the specialized method", position: 92 }
+    ];
     if (title.includes("if-else") || title.includes("condition") || title.includes("decision")) return [
       { code: "switch = OFF", memory: "wire: disconnected", flow: "The switch is open", position: 8 },
       { code: "switch = ON", memory: "wire: connected", flow: "Current can travel through the wire", position: 34 },
@@ -94,15 +142,36 @@ window.HTMLMaster.modules.Arcade = (function() {
       { code: "compare(items[1], items[2])", memory: "20 vs 30", flow: "Compare neighboring values", position: 68 },
       { code: "return items", memory: "array: processed", flow: "Finish the traversal", position: 92 }
     ];
-    return defaultSimulationSteps;
+    const mode = game.mode;
+    const verb = mode === "Build" ? "Place the next component" : mode === "Debug" ? "Inspect and fix the failing state" : mode === "Sort" ? "Compare the next pair" : mode === "Match" ? "Connect the related concept" : mode === "Maze" ? "Choose the valid path" : mode === "Speed Challenge" ? "Execute the next fast step" : mode === "Boss Battle" ? "Survive the combined concept" : "Trace the next instruction";
+    return [
+      { code: `${game.title}::start`, memory: "state: ready", flow: `${verb} — initialize`, position: 8 },
+      { code: `${game.title}::step1`, memory: "state: working", flow: `${verb} — inspect the first change`, position: 34 },
+      { code: `${game.title}::step2`, memory: "state: checking", flow: `${verb} — apply the concept`, position: 62 },
+      { code: `${game.title}::finish`, memory: "state: complete", flow: `${verb} — verify the result`, position: 92 }
+    ];
   }
-  function sceneTitle(game) { return game.title.toLowerCase().includes("if-else") || game.title.toLowerCase().includes("condition") ? "Flip the switch and run the circuit" : "Watch the live concept simulation"; }
+  function sceneTitle(game) {
+    const title = game.title.toLowerCase();
+    if (title.includes("if-else") || title.includes("condition") || title.includes("decision")) return "Flip the switch and run the circuit";
+    if (title.includes("loop") || title.includes("race") || title.includes("sequence")) return "Move through each iteration";
+    if (title.includes("pointer") || title.includes("memory") || title.includes("reference")) return "Follow the address into memory";
+    if (game.category.includes("SQL")) return "Move data through the query pipeline";
+    if (title.includes("array") || title.includes("vector") || title.includes("list") || title.includes("sort")) return "Scan the data structure step by step";
+    return `${game.mode}: interact with ${game.title}`;
+  }
   function sceneFor(game) {
     const title = game.title.toLowerCase();
     if (title.includes("if-else") || title.includes("condition") || title.includes("decision")) return `<div class="switch-scene"><button id="arcadeSwitch" onclick="this.classList.toggle('on')"><span></span></button><div class="wire"></div><div class="bulb"><i></i></div><small>Switch → wire → bulb</small></div>`;
     if (title.includes("loop") || title.includes("race") || title.includes("sequence")) return `<div class="runner-scene"><span class="runner-character">▶</span><span class="runner-finish">FINISH</span></div>`;
     if (title.includes("pointer") || title.includes("memory") || title.includes("reference")) return `<div class="memory-scene"><span>pointer</span><b>↓</b><span class="memory-box">address A1<br><strong>42</strong></span></div>`;
     if (game.category.includes("SQL")) return `<div class="sql-scene"><span>ROWS</span><b>→</b><span>FILTER</span><b>→</b><span>GROUP</span><b>→</b><span>RESULT</span></div>`;
+    if (game.mode === "Build" || game.mode === "Connect") return `<div class="build-scene"><span class="build-node">1</span><b>→</b><span class="build-node">2</span><b>→</b><span class="build-node">3</span><small>Connect the correct components</small></div>`;
+    if (game.mode === "Debug") return `<div class="debug-scene"><span>✓ input</span><b>→</b><span class="bug-node">! bug</span><b>→</b><span>✓ output</span><small>Find and repair the failing state</small></div>`;
+    if (game.mode === "Match") return `<div class="match-scene"><span>concept</span><b>⇄</b><span>example</span><b>⇄</b><span>result</span></div>`;
+    if (game.mode === "Maze") return `<div class="maze-scene"><span>START</span><b>╲ ╱</b><span>PATH</span><b>╱ ╲</b><span>GOAL</span></div>`;
+    if (game.mode === "Speed Challenge") return `<div class="speed-scene"><span class="speed-light"></span><strong>READY → RUN → CHECK</strong></div>`;
+    if (game.mode === "Boss Battle") return `<div class="boss-scene"><span>⚡</span><strong>CONCEPT BOSS</strong><span>⚡</span></div>`;
     return `<div class="array-scene"><span>[10]</span><span>[20]</span><span>[30]</span><i></i></div>`;
   }
   function advance() {
@@ -140,7 +209,25 @@ window.HTMLMaster.modules.Arcade = (function() {
   function filteredGames() { return catalog.filter(game => (!filter.search || game.title.toLowerCase().includes(filter.search.toLowerCase()) || game.category.toLowerCase().includes(filter.search.toLowerCase())) && (filter.category === "All" || game.category === filter.category) && (filter.difficulty === "All" || game.difficulty === filter.difficulty) && (filter.state === "All" || (filter.state === "Completed" ? getCompleted().has(game.id) : !getCompleted().has(game.id)))); }
   function getCompleted() { const scores = window.HTMLMaster.modules.Storage.getGameScores(); return new Set((scores.history || []).filter(item => String(item.game).startsWith("arcade:")).map(item => item.game.slice(7))); }
   function getXP() { return window.HTMLMaster.modules.Storage.getGameScores().totalPoints || 0; }
-  function exampleFor(game) { if (game.category.includes("SQL")) return "SELECT rows FROM table WHERE condition;"; if (game.category.includes("HTML")) return "for (const node of document.querySelectorAll('button')) {\n  node.addEventListener('click', run);\n}"; return "int value = 0;\nvalue = value + 1;\nreturn value;"; }
+  function exampleFor(game) {
+    const title = game.title.toLowerCase();
+    if (title.includes("binary search")) return "int mid = (low + high) / 2;\nif (items[mid] < target) low = mid + 1;";
+    if (title.includes("stack")) return "stack.push(20);\nint top = stack.top();\nstack.pop();";
+    if (title.includes("queue")) return "queue.push('A');\nqueue.push('B');\nqueue.pop();";
+    if (title.includes("linked list")) return "Node* current = head;\nwhile (current) current = current->next;";
+    if (title.includes("pointer") || title.includes("memory")) return "int value = 42;\nint* ptr = &value;\n*ptr = 99;";
+    if (title.includes("loop") || title.includes("race")) return "for (int i = 0; i < limit; ++i) {\n  movePlayer(i);\n}";
+    if (title.includes("if-else") || title.includes("condition") || title.includes("decision")) return "if (switchOn) {\n  bulb = BRIGHT;\n} else {\n  bulb = OFF;\n}";
+    if (title.includes("css") || title.includes("flexbox") || title.includes("grid")) return ".layout {\n  display: flex;\n  gap: 16px;\n}";
+    if (title.includes("dom") || title.includes("html") || title.includes("web page")) return "const button = document.querySelector('button');\nbutton.addEventListener('click', run);";
+    if (title.includes("sql") || title.includes("query") || title.includes("join") || game.category.includes("DBMS")) return "SELECT users.name, skills.score\nFROM users JOIN skills ON users.id = skills.user_id\nWHERE skills.score > 70;";
+    if (title.includes("class") || title.includes("object") || title.includes("inheritance") || title.includes("polymorphism")) return "class Child : public Base {\npublic:\n  void run() override;\n};";
+    if (game.category === "Python") return "items = [10, 20, 30]\nfor item in items:\n    print(item)";
+    if (game.category === "Java") return "List<String> names = new ArrayList<>();\nnames.add(\"Ada\");";
+    if (game.category === "C#") return "var scores = new List<int> { 80, 90 };\nvar best = scores.Max();";
+    if (game.category === "C Programming") return "int values[3] = {10, 20, 30};\nint *ptr = values;";
+    return `${game.title}::run();\nresult = inspect(nextState);`;
+  }
   function escape(value) { return window.HTMLMaster.modules.Storage.escapeHTML(value); }
   return { render, play, answer, advance, resetSimulation, complete, next, catalog };
 })();
