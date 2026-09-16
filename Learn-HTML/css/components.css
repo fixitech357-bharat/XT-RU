@@ -250,6 +250,15 @@ nav button:hover > span:first-child,
   margin-top: 12px;
 }
 
+.admin-user-detail { padding: 20px; background: var(--surface); border: 1px solid var(--border-medium); border-radius: var(--radius-lg); }
+.admin-user-detail h3 { margin: 18px 0 6px; color: var(--primary); }
+.admin-user-detail p, .admin-user-detail li { color: var(--text-muted); }
+.admin-user-detail h4 { margin: 18px 0 8px; color: var(--text-main); }
+.admin-user-detail ul { margin-left: 20px; }
+.admin-edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0; }
+.admin-edit-grid label { color: var(--text-muted); font-size: 12px; font-weight: 700; }
+.admin-edit-grid input { display: block; width: 100%; margin-top: 5px; padding: 10px; color: var(--text-main); background: var(--surface-elevated); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); }
+
 .assessment-hero,
 .results-hero,
 .cpp-question-card,
@@ -411,6 +420,7 @@ nav button:hover > span:first-child,
   .technical-skill-card small { grid-column: 1 / -1; }
   .skill-row { grid-template-columns: 1fr 48px; }
   .skill-bar { grid-column: 1 / -1; }
+  .admin-edit-grid { grid-template-columns: 1fr; }
 }
 
 @keyframes view-enter {

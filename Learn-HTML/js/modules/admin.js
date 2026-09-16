@@ -158,7 +158,10 @@ window.HTMLMaster.modules.Admin = (function() {
             <td>${Storage.escapeHTML(u.phone || "—")}</td>
             <td>${u.dob ? Storage.escapeHTML(u.dob) : "—"}</td>
             <td>${u.joined ? new Date(u.joined).toLocaleDateString() : "—"}</td>
+            <td>${Number(u.assessmentAttempts || 0)}</td>
+            <td>${Number(u.averageScore || 0)}%</td>
             <td>${u.hasPassword ? '<span class="score-badge good">Active</span>' : '<span class="score-badge mid">Not set</span>'}</td>
+            <td><button class="btn ghost sm" onclick="window.HTMLMaster.modules.Admin.viewUser('${encodeURIComponent(u.id)}')">View / Edit</button></td>
           </tr>
         `;
       });
@@ -172,7 +175,10 @@ window.HTMLMaster.modules.Admin = (function() {
               <th>Mobile</th>
               <th>DOB</th>
               <th>Joined</th>
+              <th>Attempts</th>
+              <th>Average</th>
               <th>Password</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -185,6 +191,52 @@ window.HTMLMaster.modules.Admin = (function() {
       }
       container.innerHTML = '<div class="empty"><span class="ico">⚠️</span>Could not load registered users. Ensure the server is running.</div>';
     }
+  }
+
+  async function viewUser(encodedId) {
+    const id = decodeURIComponent(encodedId);
+    try {
+      const user = await window.HTMLMaster.modules.Storage.loadAdminUser(id);
+      const attempts = Array.isArray(user.assessmentAttempts) ? user.assessmentAttempts : [];
+      const details = attempts.length
+        ? attempts.map(attempt => `<li>${escape(user.language || attempt.language)} — ${attempt.percentage}% — ${new Date(attempt.date).toLocaleDateString()}</li>`).join("")
+        : "<li>No assessment attempts yet.</li>";
+      const area = document.getElementById("adminUsersTable");
+      area.innerHTML = `
+        <div class="admin-user-detail">
+          <button class="back-btn" onclick="window.HTMLMaster.modules.Admin.refreshUsers()">&larr; Back to users</button>
+          <h3>${escape(user.name)} <span class="pill">${attempts.length} attempts</span></h3>
+          <p>${escape(user.email)} · ${escape(user.phone || "No phone")} · Joined ${new Date(user.joined).toLocaleDateString()}</p>
+          <h4>Technical Assessment History</h4><ul>${details}</ul>
+          <div class="admin-edit-grid">
+            <label>Name<input id="adminEditName" value="${escape(user.name)}" /></label>
+            <label>Mobile<input id="adminEditPhone" value="${escape(user.phone || "")}" /></label>
+            <label>DOB<input id="adminEditDob" type="date" value="${escape(user.dob || "")}" /></label>
+          </div>
+          <button class="btn" onclick="window.HTMLMaster.modules.Admin.saveUser('${encodeURIComponent(user.userId || user.id)}')">Save Learner Details</button>
+        </div>
+      `;
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  async function saveUser(encodedId) {
+    try {
+      await window.HTMLMaster.modules.Storage.updateAdminUser(decodeURIComponent(encodedId), {
+        name: document.getElementById("adminEditName").value,
+        phone: document.getElementById("adminEditPhone").value,
+        dob: document.getElementById("adminEditDob").value
+      });
+      window.HTMLMaster.modules.Toast.show("Learner details updated.", "success");
+      refreshUsers();
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  function escape(value) {
+    return window.HTMLMaster.modules.Storage.escapeHTML(value || "");
   }
 
   function refresh() {
@@ -214,6 +266,8 @@ window.HTMLMaster.modules.Admin = (function() {
     refreshStats: refreshStats,
     refreshUsers: refreshUsers,
     login: login,
+    viewUser: viewUser,
+    saveUser: saveUser,
     onCountUpdate: onCountUpdate
   };
 })();

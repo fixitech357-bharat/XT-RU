@@ -86,6 +86,24 @@ window.HTMLMaster.modules.Storage = (function() {
     return Array.isArray(body.users) ? body.users : [];
   }
 
+  async function loadAdminUser(id) {
+    const response = await fetch(`/api/admin/users/${encodeURIComponent(id)}`, { cache: "no-store" });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Could not load learner details.");
+    return body.user;
+  }
+
+  async function updateAdminUser(id, patch) {
+    const response = await fetch(`/api/admin/users/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch)
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Could not update learner details.");
+    return body.user;
+  }
+
   async function adminLogin(email, password) {
     const response = await fetch("/api/admin/login", {
       method: "POST",
@@ -492,6 +510,8 @@ window.HTMLMaster.modules.Storage = (function() {
     loadEnrolledCount: loadEnrolledCount,
     loadAdminStats: loadAdminStats,
     loadAdminUsers: loadAdminUsers,
+    loadAdminUser: loadAdminUser,
+    updateAdminUser: updateAdminUser,
     adminLogin: adminLogin,
     requestPasswordOtp: requestPasswordOtp,
     verifyPasswordOtp: verifyPasswordOtp,

@@ -397,7 +397,7 @@ app.get("/api/admin/stats", async (req, res) => {
 app.get("/api/admin/users", async (req, res) => {
   try {
     const users = await userCollection()
-      .find({}, { projection: { userId: 1, name: 1, email: 1, phone: 1, dob: 1, joined: 1, passwordHash: 1 } })
+      .find({}, { projection: { userId: 1, name: 1, email: 1, phone: 1, dob: 1, joined: 1, passwordHash: 1, assessmentAttempts: 1 } })
       .sort({ joined: -1 })
       .limit(200)
       .toArray();
@@ -409,12 +409,47 @@ app.get("/api/admin/users", async (req, res) => {
         phone: user.phone,
         dob: user.dob,
         joined: user.joined,
-        hasPassword: !!user.passwordHash
+        hasPassword: !!user.passwordHash,
+        assessmentAttempts: Array.isArray(user.assessmentAttempts) ? user.assessmentAttempts.length : 0,
+        averageScore: Array.isArray(user.assessmentAttempts) && user.assessmentAttempts.length
+          ? Math.round(user.assessmentAttempts.reduce((sum, attempt) => sum + Number(attempt.percentage || 0), 0) / user.assessmentAttempts.length)
+          : 0
       }))
     });
   } catch (error) {
     console.error("Admin users load failed:", error);
     res.status(500).json({ error: "Could not load admin users." });
+  }
+});
+
+app.get("/api/admin/users/:id", async (req, res) => {
+  try {
+    const user = await userCollection().findOne({ userId: req.params.id }, { projection: { passwordHash: 0 } });
+    if (!user) return res.status(404).json({ error: "Learner not found." });
+    res.json({ user });
+  } catch (error) {
+    console.error("Admin learner detail failed:", error);
+    res.status(500).json({ error: "Could not load learner details." });
+  }
+});
+
+app.put("/api/admin/users/:id", async (req, res) => {
+  try {
+    const patch = {};
+    ["name", "phone", "dob", "emoji"].forEach(key => {
+      if (req.body[key] !== undefined) patch[key] = String(req.body[key]).trim();
+    });
+    if (patch.name !== undefined && patch.name.length < 2) return res.status(400).json({ error: "Name is too short." });
+    const result = await userCollection().findOneAndUpdate(
+      { userId: req.params.id },
+      { $set: Object.assign(patch, { updatedAt: new Date() }) },
+      { returnDocument: "after", projection: { passwordHash: 0 } }
+    );
+    if (!result) return res.status(404).json({ error: "Learner not found." });
+    res.json({ user: result });
+  } catch (error) {
+    console.error("Admin learner update failed:", error);
+    res.status(500).json({ error: "Could not update learner details." });
   }
 });
 
