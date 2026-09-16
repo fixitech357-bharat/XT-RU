@@ -14,6 +14,17 @@ window.HTMLMaster.modules.Admin = (function() {
     startAutoRefresh();
   }
 
+  async function checkSession() {
+    try {
+      await window.HTMLMaster.modules.Storage.loadAdminStats();
+      const nav = document.getElementById("adminNav");
+      if (nav) nav.style.display = "inline-flex";
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   function startAutoRefresh() {
     stopAutoRefresh();
     // Poll the live count every 10s while the admin panel is open so the
@@ -103,6 +114,8 @@ window.HTMLMaster.modules.Admin = (function() {
     const password = document.getElementById("adminPassword").value;
     try {
       await window.HTMLMaster.modules.Storage.adminLogin(email, password);
+      const nav = document.getElementById("adminNav");
+      if (nav) nav.style.display = "inline-flex";
       renderAdmin();
       window.HTMLMaster.modules.Toast.show("Admin access granted.", "success");
     } catch (error) {
@@ -261,6 +274,7 @@ window.HTMLMaster.modules.Admin = (function() {
 
   return {
     openAdmin: openAdmin,
+    checkSession: checkSession,
     renderAdmin: renderAdmin,
     refresh: refresh,
     refreshStats: refreshStats,

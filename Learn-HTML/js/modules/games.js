@@ -11,7 +11,7 @@ window.HTMLMaster = window.HTMLMaster || {};
 window.HTMLMaster.modules = window.HTMLMaster.modules || {};
 
 window.HTMLMaster.modules.Games = (function() {
-  let activeGame = "memory"; // "memory", "snake", "wordmap", "chooseall", "scorecard"
+  let activeGame = "arcade"; // "arcade", "memory", "snake", "wordmap", "chooseall", "scorecard"
 
   function escapeHTML(str) {
     if (!str) return "";
@@ -1538,14 +1538,18 @@ window.HTMLMaster.modules.Games = (function() {
     const wordMapArea = document.getElementById("gameWordMapArea");
     const chooseAllArea = document.getElementById("gameChooseAllArea");
     const scoreCardArea = document.getElementById("gameScoreCardArea");
+    const arcadeArea = document.getElementById("gameArcadeArea");
 
+    if (arcadeArea) arcadeArea.style.display = which === "arcade" ? "block" : "none";
     if (memoryArea) memoryArea.style.display = which === "memory" ? "block" : "none";
     if (snakeArea) snakeArea.style.display = which === "snake" ? "block" : "none";
     if (wordMapArea) wordMapArea.style.display = which === "wordmap" ? "block" : "none";
     if (chooseAllArea) chooseAllArea.style.display = which === "chooseall" ? "block" : "none";
     if (scoreCardArea) scoreCardArea.style.display = which === "scorecard" ? "block" : "none";
 
-    if (which === "memory") {
+    if (which === "arcade") {
+      if (window.HTMLMaster.modules.Arcade) window.HTMLMaster.modules.Arcade.render();
+    } else if (which === "memory") {
       initMemoryGame();
     } else if (which === "snake") {
       initSnakeGame();

@@ -90,6 +90,12 @@ window.HTMLMaster = window.HTMLMaster || {};
     // Render components
     window.HTMLMaster.modules.Topics.renderHome();
     window.HTMLMaster.modules.Profile.renderNavUser();
+    if (window.HTMLMaster.modules.Admin) {
+      window.HTMLMaster.modules.Admin.checkSession();
+      if (window.location.pathname === "/admin/login") {
+        window.HTMLMaster.modules.Admin.openAdmin();
+      }
+    }
 
     // Initialize dynamic roaming background
     if (window.HTMLMaster.modules.Background) {

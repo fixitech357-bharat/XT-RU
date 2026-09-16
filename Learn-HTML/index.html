@@ -85,7 +85,7 @@
       <button data-view="view-profile" onclick="window.HTMLMaster.modules.Profile.openProfile()">
         <span>&#128100;</span><span class="lbl">Profile</span>
       </button>
-      <button data-view="view-admin" onclick="window.HTMLMaster.modules.Admin.openAdmin()">
+      <button id="adminNav" data-view="view-admin" style="display: none;" onclick="window.HTMLMaster.modules.Admin.openAdmin()">
         <span>&#128737;</span><span class="lbl">Admin</span>
       </button>
     </nav>
@@ -449,6 +449,9 @@ button:hover {
       </p>
 
       <div class="game-tabs">
+        <button class="game-tab-btn active" data-game="arcade" onclick="window.HTMLMaster.modules.Games.switchGame('arcade')">
+          🧠 Programming Arcade
+        </button>
         <button class="game-tab-btn active" data-game="memory"
           onclick="window.HTMLMaster.modules.Games.switchGame('memory')">
           🃏 Tag Matcher
@@ -468,6 +471,10 @@ button:hover {
           onclick="window.HTMLMaster.modules.Games.switchGame('scorecard')">
           📊 Player Score Card
         </button>
+      </div>
+
+      <div id="gameArcadeArea">
+        <div id="arcadeLibraryArea"></div>
       </div>
 
       <!-- Game 1: Memory Matcher -->
@@ -729,6 +736,7 @@ button:hover {
   <script src="js/modules/cheatsheet.js"></script>
   <script src="js/modules/challenges.js"></script>
   <script src="js/modules/games.js"></script>
+  <script src="js/modules/arcade.js"></script>
   <script src="js/modules/leaderboard.js"></script>
   <script src="js/modules/profile.js"></script>
   <script src="js/modules/logic-visualizer.js"></script>
