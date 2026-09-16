@@ -356,7 +356,14 @@ app.get("/api/admin/stats", async (req, res) => {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const today = await userCollection().countDocuments({ joined: { $gte: startOfDay.toISOString() } });
-    res.json({ total, withPassword, today, generatedAt: new Date().toISOString() });
+    const learners = await userCollection().find({}, { projection: { assessmentAttempts: 1 } }).toArray();
+    const attempts = learners.flatMap(user => Array.isArray(user.assessmentAttempts) ? user.assessmentAttempts : []);
+    const completed = attempts.filter(attempt => attempt.percentage !== undefined);
+    const averageScore = completed.length
+      ? Math.round(completed.reduce((sum, attempt) => sum + Number(attempt.percentage || 0), 0) / completed.length * 10) / 10
+      : 0;
+    const cppAssessments = attempts.filter(attempt => attempt.language === "C++").length;
+    res.json({ total, withPassword, today, totalAssessments: attempts.length, completedAssessments: completed.length, averageScore, cppAssessments, generatedAt: new Date().toISOString() });
   } catch (error) {
     console.error("Admin stats load failed:", error);
     res.status(500).json({ error: "Could not load admin stats." });

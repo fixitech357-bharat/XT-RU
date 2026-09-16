@@ -56,6 +56,18 @@ window.HTMLMaster.modules.Admin = (function() {
           <div class="num" id="adminLastUpdated">—</div>
           <div class="lbl">Last Updated</div>
         </div>
+        <div class="stat">
+          <div class="num" id="adminAssessmentCount">—</div>
+          <div class="lbl">Quiz Attempts</div>
+        </div>
+        <div class="stat green">
+          <div class="num" id="adminAverageScore">—</div>
+          <div class="lbl">Average Score</div>
+        </div>
+        <div class="stat purple">
+          <div class="num" id="adminCppAssessments">—</div>
+          <div class="lbl">C++ Assessments</div>
+        </div>
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin: 22px 0 12px; flex-wrap: wrap; gap: 10px;">
@@ -105,6 +117,9 @@ window.HTMLMaster.modules.Admin = (function() {
       setText("adminTotalUsers", Number(stats.total || 0).toLocaleString());
       setText("adminTodayUsers", Number(stats.today || 0).toLocaleString());
       setText("adminPasswordUsers", Number(stats.withPassword || 0).toLocaleString());
+      setText("adminAssessmentCount", Number(stats.totalAssessments || 0).toLocaleString());
+      setText("adminAverageScore", `${Number(stats.averageScore || 0).toLocaleString()}%`);
+      setText("adminCppAssessments", Number(stats.cppAssessments || 0).toLocaleString());
       setText("adminLastUpdated", new Date().toLocaleTimeString());
       lastCount = stats.total;
     } catch (e) {
