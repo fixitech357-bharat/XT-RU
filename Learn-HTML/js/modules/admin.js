@@ -70,6 +70,34 @@ window.HTMLMaster.modules.Admin = (function() {
     refreshUsers();
   }
 
+  function renderLogin() {
+    const area = document.getElementById("adminArea");
+    if (!area) return;
+    area.innerHTML = `
+      <div class="login-card admin-login-card">
+        <div class="admin-login-icon">🔐</div>
+        <h2>Admin Sign In</h2>
+        <p>Use the administrator credentials configured for this deployment.</p>
+        <div class="field"><label for="adminEmail">Admin Email</label><input id="adminEmail" type="email" autocomplete="username" /></div>
+        <div class="field"><label for="adminPassword">Admin Password</label><input id="adminPassword" type="password" autocomplete="current-password" /></div>
+        <button class="btn" style="width:100%;" onclick="window.HTMLMaster.modules.Admin.login()">Sign In &rarr;</button>
+        <p class="admin-login-note">Admin credentials are never stored in the browser.</p>
+      </div>
+    `;
+  }
+
+  async function login() {
+    const email = document.getElementById("adminEmail").value.trim();
+    const password = document.getElementById("adminPassword").value;
+    try {
+      await window.HTMLMaster.modules.Storage.adminLogin(email, password);
+      renderAdmin();
+      window.HTMLMaster.modules.Toast.show("Admin access granted.", "success");
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
   async function refreshStats() {
     const Storage = window.HTMLMaster.modules.Storage;
     try {
@@ -80,6 +108,10 @@ window.HTMLMaster.modules.Admin = (function() {
       setText("adminLastUpdated", new Date().toLocaleTimeString());
       lastCount = stats.total;
     } catch (e) {
+      if (e.status === 401) {
+        renderLogin();
+        return;
+      }
       // Fall back to the shared live-count endpoint if admin stats fail.
       try {
         const count = await Storage.loadEnrolledCount();
@@ -132,6 +164,10 @@ window.HTMLMaster.modules.Admin = (function() {
         </table>
       `;
     } catch (e) {
+      if (e.status === 401) {
+        renderLogin();
+        return;
+      }
       container.innerHTML = '<div class="empty"><span class="ico">⚠️</span>Could not load registered users. Ensure the server is running.</div>';
     }
   }
@@ -162,6 +198,7 @@ window.HTMLMaster.modules.Admin = (function() {
     refresh: refresh,
     refreshStats: refreshStats,
     refreshUsers: refreshUsers,
+    login: login,
     onCountUpdate: onCountUpdate
   };
 })();

@@ -67,15 +67,34 @@ window.HTMLMaster.modules.Storage = (function() {
 
   async function loadAdminStats() {
     const response = await fetch("/api/admin/stats", { cache: "no-store" });
-    if (!response.ok) throw new Error("Admin stats request failed");
+    if (!response.ok) {
+      const error = new Error(response.status === 401 ? "Admin login required." : "Admin stats request failed");
+      error.status = response.status;
+      throw error;
+    }
     return response.json();
   }
 
   async function loadAdminUsers() {
     const response = await fetch("/api/admin/users", { cache: "no-store" });
-    if (!response.ok) throw new Error("Admin users request failed");
+    if (!response.ok) {
+      const error = new Error(response.status === 401 ? "Admin login required." : "Admin users request failed");
+      error.status = response.status;
+      throw error;
+    }
     const body = await response.json();
     return Array.isArray(body.users) ? body.users : [];
+  }
+
+  async function adminLogin(email, password) {
+    const response = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "Admin login failed.");
+    return body;
   }
 
   async function requestPasswordOtp(email, newPassword) {
@@ -473,6 +492,7 @@ window.HTMLMaster.modules.Storage = (function() {
     loadEnrolledCount: loadEnrolledCount,
     loadAdminStats: loadAdminStats,
     loadAdminUsers: loadAdminUsers,
+    adminLogin: adminLogin,
     requestPasswordOtp: requestPasswordOtp,
     verifyPasswordOtp: verifyPasswordOtp,
     requestProfileOtp: requestProfileOtp,

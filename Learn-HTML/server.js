@@ -15,6 +15,8 @@ const configurationError = missingConfig.length
 const app = express();
 const port = Number(process.env.PORT || 3001);
 const mongoClient = process.env.MONGODB_URI ? new MongoClient(process.env.MONGODB_URI) : null;
+const adminEmail = normalizeEmail(process.env.ADMIN_EMAIL);
+const adminPassword = String(process.env.ADMIN_PASSWORD || "");
 const otpCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("email_otps");
 const userCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("learners");
 let databaseReady;
@@ -65,6 +67,29 @@ function normalizeEmail(value) {
 
 function hashOtp(otp) {
   return crypto.createHmac("sha256", process.env.OTP_SECRET).update(otp).digest("hex");
+}
+
+function signAdminToken() {
+  const payload = `${adminEmail}:${Date.now() + 8 * 60 * 60 * 1000}`;
+  const signature = crypto.createHmac("sha256", process.env.OTP_SECRET || "missing").update(payload).digest("hex");
+  return Buffer.from(`${payload}.${signature}`).toString("base64url");
+}
+
+function isAdminAuthenticated(req) {
+  const raw = String(req.headers.cookie || "").split(";").find(value => value.trim().startsWith("xtru_admin="));
+  if (!raw) return false;
+  try {
+    const token = Buffer.from(raw.split("=").slice(1).join("=").trim(), "base64url").toString();
+    const separator = token.lastIndexOf(".");
+    const payload = token.slice(0, separator);
+    const signature = token.slice(separator + 1);
+    const expected = crypto.createHmac("sha256", process.env.OTP_SECRET || "missing").update(payload).digest("hex");
+    const [email, expires] = payload.split(":");
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected)) &&
+      email === adminEmail && Number(expires) > Date.now();
+  } catch (error) {
+    return false;
+  }
 }
 
 function hashPassword(password) {
@@ -303,6 +328,24 @@ app.get("/api/stats/enrolled", async (req, res) => {
     console.error("Enrollment count load failed:", error);
     res.status(500).json({ error: "Could not load enrollment count." });
   }
+});
+
+app.post("/api/admin/login", async (req, res) => {
+  if (!adminEmail || !adminPassword) {
+    return res.status(503).json({ error: "Admin credentials are not configured." });
+  }
+  const email = normalizeEmail(req.body.email);
+  const password = String(req.body.password || "");
+  if (email !== adminEmail || password !== adminPassword) {
+    return res.status(401).json({ error: "Invalid admin credentials." });
+  }
+  res.setHeader("Set-Cookie", `xtru_admin=${signAdminToken()}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=28800`);
+  res.json({ authenticated: true });
+});
+
+app.use("/api/admin", (req, res, next) => {
+  if (!isAdminAuthenticated(req)) return res.status(401).json({ error: "Admin login required." });
+  next();
 });
 
 app.get("/api/admin/stats", async (req, res) => {

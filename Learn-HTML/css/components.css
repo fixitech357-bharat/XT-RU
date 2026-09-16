@@ -179,6 +179,91 @@
   box-shadow: 0 2px 10px var(--danger-glow);
 }
 
+/* Premium interaction layer: keeps the existing palette and brand surfaces intact. */
+nav button > span:first-child,
+.btn > span:first-child,
+.section-head .pill,
+.home-stats .pill {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25em;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), filter 0.24s ease;
+}
+
+nav button:hover > span:first-child,
+.btn:hover > span:first-child {
+  transform: translateY(-1px) scale(1.12);
+  filter: drop-shadow(0 0 7px var(--primary-glow));
+}
+
+.view.active {
+  animation: view-enter 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.level-card,
+.stat,
+.login-card,
+.profile-header,
+.challenge-prompt-card,
+.quiz-box,
+.topic-content,
+.badge-card {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.28s ease, border-color 0.28s ease;
+}
+
+.level-card:hover,
+.stat:hover,
+.login-card:hover,
+.profile-header:hover,
+.challenge-prompt-card:hover,
+.quiz-box:hover,
+.topic-content:hover,
+.badge-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md), 0 0 22px var(--primary-glow);
+  border-color: var(--border-bright);
+}
+
+.admin-login-card {
+  max-width: 460px;
+  margin: 28px auto;
+  text-align: center;
+}
+
+.admin-login-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-bright);
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-glow);
+  font-size: 24px;
+}
+
+.admin-login-note {
+  color: var(--text-dim);
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+@keyframes view-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .btn.sm {
   padding: 6px 12px;
   font-size: 12.5px;
