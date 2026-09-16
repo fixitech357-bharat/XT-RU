@@ -49,17 +49,17 @@ window.HTMLMaster.modules.Profile = (function() {
     const examPct = user.exam ? Math.round((user.exam.score / user.exam.total) * 100) : null;
     const rankStr = getRankFor(user);
     const assessmentAttempts = Array.isArray(user.assessmentAttempts) ? user.assessmentAttempts : [];
-    const latestCpp = assessmentAttempts.filter(attempt => attempt.language === "C++").slice(-1)[0];
+    const assessedLanguages = ["Logical Thinking", "Problem Solving", "Programming Fundamentals", "C++", "Java", "C#", "Python", "DBMS", "SQL"];
+    const technicalRows = assessedLanguages.map(language => {
+      const attempts = assessmentAttempts.filter(attempt => attempt.language === language);
+      const latest = attempts.slice(-1)[0];
+      return `<div class="technical-skill-card"><div><strong>${Storage.escapeHTML(language)}</strong><span>Objective assessment</span></div><b>${latest ? latest.percentage + "%" : "—"}</b><span>${latest ? getAssessmentLevel(latest.percentage) : "Not assessed"}</span><small>${latest ? `Attempts: ${attempts.length} · Last: ${formatDate(latest.date)}` : "Complete an assessment"}</small></div>`;
+    }).join("");
     const technicalSkillsHTML = `
       <section class="technical-skills-panel">
         <h3>🧠 Technical Skills</h3>
-        <div class="technical-skill-card">
-          <div><strong>C++</strong><span>Objective assessment</span></div>
-          <b>${latestCpp ? latestCpp.percentage + "%" : "Not assessed"}</b>
-          <span>${latestCpp ? getAssessmentLevel(latestCpp.percentage) : "Complete an assessment"}</span>
-          <small>${latestCpp ? `Attempts: ${assessmentAttempts.filter(attempt => attempt.language === "C++").length} · Last: ${formatDate(latestCpp.date)}` : "No attempts yet"}</small>
-        </div>
-        <button class="btn ghost sm" onclick="window.HTMLMaster.modules.CppQuiz.openQuiz()">Take C++ Assessment &rarr;</button>
+        <div class="technical-skill-list">${technicalRows}</div>
+        <button class="btn ghost sm" onclick="window.HTMLMaster.modules.CppQuiz.openQuiz()">Take Technical Assessment &rarr;</button>
       </section>
     `;
 

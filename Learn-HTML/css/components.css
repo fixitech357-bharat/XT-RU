@@ -372,6 +372,12 @@ nav button:hover > span:first-child,
 .technical-skills-panel { margin-top: 22px; }
 .technical-skill-card { display: grid; grid-template-columns: 1.2fr 0.6fr 1fr 1.5fr; align-items: center; gap: 12px; padding: 14px; margin-bottom: 14px; background: var(--surface-elevated); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); }
 .technical-skill-card div span, .technical-skill-card small { display: block; color: var(--text-muted); font-size: 12px; }
+.technical-skill-list { display: grid; gap: 8px; }
+.learning-path-panel { margin: 18px 0; padding: 20px; border: 1px solid var(--success-border); border-radius: var(--radius-lg); background: rgba(16, 185, 129, 0.08); }
+.learning-path-panel h3 { color: var(--success); margin-bottom: 6px; }
+.learning-path-panel .path-level { color: var(--gold); font-size: 22px; font-weight: 800; }
+.learning-path-panel p { color: var(--text-muted); }
+.learning-path-panel ol { margin: 12px 0 0 20px; color: var(--text-muted); }
 .technical-skill-card > b { color: var(--primary); font-size: 20px; }
 .technical-skill-card > span { color: var(--success); font-weight: 700; }
 

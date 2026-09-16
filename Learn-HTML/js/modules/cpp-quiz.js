@@ -10,6 +10,10 @@ window.HTMLMaster.modules.CppQuiz = (function() {
   let timerId = null;
   let submitted = false;
 
+  function getAssessments() {
+    return window.HTMLMaster.data.TECHNICAL_ASSESSMENTS || window.HTMLMaster.data.CPP_ASSESSMENTS || [];
+  }
+
   function openQuiz() {
     window.HTMLMaster.showView("view-cpp-quiz");
     renderLanding();
@@ -19,7 +23,7 @@ window.HTMLMaster.modules.CppQuiz = (function() {
     stopTimer();
     const area = document.getElementById("cppQuizArea");
     if (!area) return;
-    const assessments = window.HTMLMaster.data.CPP_ASSESSMENTS || [];
+    const assessments = getAssessments();
     area.innerHTML = `
       <div class="assessment-hero">
         <span class="eyebrow">Technical Skill Assessment</span>
@@ -41,7 +45,7 @@ window.HTMLMaster.modules.CppQuiz = (function() {
   }
 
   function start(id) {
-    const selected = (window.HTMLMaster.data.CPP_ASSESSMENTS || []).find(item => item.id === id);
+    const selected = getAssessments().find(item => item.id === id);
     if (!selected) return;
     assessment = selected;
     const saved = loadState();
@@ -176,13 +180,23 @@ window.HTMLMaster.modules.CppQuiz = (function() {
       const correct = chosen === question.answer;
       return `<details class="review-item ${correct ? "review-correct" : "review-wrong"}"><summary>${index + 1}. ${escapeHTML(question.question)} <b>${chosen === null ? "Unanswered" : correct ? "Correct" : "Incorrect"}</b></summary><p><strong>Answer:</strong> ${escapeHTML(question.options[question.answer])}</p><p>${escapeHTML(question.explanation)}</p></details>`;
     }).join("");
+    const nextStep = learningPath(attempt.percentage);
     area.innerHTML = `
       <div class="results-hero"><span class="eyebrow">Technical Skill Assessment</span><h2>${escapeHTML(assessment.title)}</h2><div class="result-level">${levelFor(attempt.percentage)}</div><p>Objective level based on ${attempt.percentage}% quiz performance.</p></div>
       <div class="result-stats"><div><strong>${attempt.score}/${attempt.total}</strong><span>Score</span></div><div><strong>${attempt.percentage}%</strong><span>Percentage</span></div><div><strong>${attempt.correct}</strong><span>Correct</span></div><div><strong>${attempt.wrong}</strong><span>Wrong</span></div><div><strong>${attempt.unanswered}</strong><span>Unanswered</span></div><div><strong>${formatDuration(attempt.timeSeconds)}</strong><span>Time</span></div></div>
       <section class="skill-breakdown"><h3>Skill Breakdown</h3>${categories}</section>
+      <section class="learning-path-panel"><h3>Recommended Next Learning Step</h3><div class="path-level">${nextStep.level}</div><p>${nextStep.description}</p><ol>${nextStep.steps.map(step => `<li>${escapeHTML(step)}</li>`).join("")}</ol></section>
       <section class="question-review"><h3>Question Review</h3>${review}</section>
       <button class="btn" onclick="window.HTMLMaster.modules.CppQuiz.openQuiz()">Back to Assessments</button>
     `;
+  }
+
+  function learningPath(percentage) {
+    if (percentage < 40) return { level: "Beginner", description: "Build the core vocabulary and execution model before increasing difficulty.", steps: ["Review variables, types, conditions, and loops.", "Complete short guided examples in the recommended language.", "Retake this assessment after practicing the weak categories."] };
+    if (percentage < 55) return { level: "Foundation", description: "Your fundamentals are forming; focus on consistency and simple problem solving.", steps: ["Practice functions, arrays, collections, and input/output.", "Trace each example by hand before running it.", "Complete five beginner exercises and retake the assessment."] };
+    if (percentage < 70) return { level: "Intermediate", description: "You can work with core concepts; now strengthen design and debugging habits.", steps: ["Study data structures and error handling.", "Use the playground to compare two implementations.", "Solve timed problems from your weakest categories."] };
+    if (percentage < 85) return { level: "Advanced", description: "Your score supports advanced work; focus on tradeoffs and maintainability.", steps: ["Practice complexity analysis and architecture decisions.", "Review memory, concurrency, or database performance topics.", "Build one small project and document your technical choices."] };
+    return { level: "Expert", description: "Your performance supports expert-level study; apply the concepts to larger systems.", steps: ["Solve mixed-domain problems under time constraints.", "Review edge cases, testing strategy, and performance tradeoffs.", "Teach or document a concept to validate depth of understanding."] };
   }
 
   function confirmExit() {
