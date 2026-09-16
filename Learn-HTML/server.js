@@ -8,14 +8,13 @@ const { MongoClient } = require("mongodb");
 
 const requiredConfig = ["MONGODB_URI", "MONGODB_DB", "OTP_SECRET", "SMTP_USER", "SMTP_PASS"];
 const missingConfig = requiredConfig.filter(key => !process.env[key]);
-if (missingConfig.length) {
-  console.error(`Missing required environment variables: ${missingConfig.join(", ")}`);
-  process.exit(1);
-}
+const configurationError = missingConfig.length
+  ? `Missing required environment variables: ${missingConfig.join(", ")}`
+  : null;
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
-const mongoClient = new MongoClient(process.env.MONGODB_URI);
+const mongoClient = process.env.MONGODB_URI ? new MongoClient(process.env.MONGODB_URI) : null;
 const otpCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("email_otps");
 const userCollection = () => mongoClient.db(process.env.MONGODB_DB).collection("learners");
 let databaseReady;
@@ -35,6 +34,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 async function connectDatabase() {
+  if (configurationError || !mongoClient) {
+    throw new Error(configurationError || "MongoDB configuration is missing.");
+  }
   if (!databaseReady) {
     databaseReady = mongoClient.connect().then(async () => {
       await otpCollection().createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
@@ -46,6 +48,9 @@ async function connectDatabase() {
 
 app.use("/api", async (req, res, next) => {
   try {
+    if (configurationError) {
+      return res.status(503).json({ error: "Authentication server is not configured in Vercel.", missing: missingConfig });
+    }
     await connectDatabase();
     next();
   } catch (error) {
@@ -357,6 +362,7 @@ app.post("/api/auth/login-password", async (req, res) => {
 });
 
 async function start() {
+  if (configurationError) throw new Error(configurationError);
   await connectDatabase();
   app.listen(port, () => console.log(`XTuti RiseUp running at http://localhost:${port}`));
 }
