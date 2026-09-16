@@ -314,6 +314,15 @@ nav button:hover > span:first-child,
 .arcade-concept, .arcade-challenge { padding: 14px; background: var(--surface-elevated); border-radius: var(--radius-md); }
 .arcade-concept p { color: var(--text-muted); }
 .arcade-concept pre { margin-top: 14px; padding: 12px; color: var(--code-string); background: var(--code-bg); border-radius: var(--radius-sm); white-space: pre-wrap; font: 12px/1.5 var(--font-mono); }
+.arcade-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.arcade-simulation { padding: 14px; background: var(--code-bg); border: 1px solid var(--code-border); border-radius: var(--radius-md); }
+.arcade-track { position: relative; height: 34px; margin: 8px 0 16px; border-bottom: 2px solid var(--border-bright); }
+.arcade-track::before { content: ""; position: absolute; left: 0; right: 0; top: 16px; border-top: 1px dashed var(--border-bright); }
+.arcade-track i { position: absolute; top: 7px; width: 18px; height: 18px; display: block; background: var(--primary); border: 3px solid var(--bg-primary); border-radius: 50%; box-shadow: 0 0 14px var(--primary); transform: translateX(-50%); transition: left 0.55s cubic-bezier(0.16, 1, 0.3, 1); }
+.arcade-simulation strong { color: var(--primary); }
+.arcade-simulation pre { margin: 12px 0 8px; color: var(--code-string); font: 13px/1.5 var(--font-mono); white-space: pre-wrap; }
+.arcade-memory-state { padding: 8px; color: var(--gold); background: rgba(251, 191, 36, 0.1); border-radius: var(--radius-sm); font: 12px var(--font-mono); }
+.arcade-simulation p { margin-top: 10px; color: var(--text-muted); font-size: 12px; }
 .arcade-choices { display: grid; gap: 8px; margin-top: 14px; }
 .arcade-choices button { padding: 12px; color: var(--text-main); text-align: left; background: var(--surface); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); cursor: pointer; font: inherit; }
 .arcade-choices button:hover { border-color: var(--primary); background: var(--surface-hover); }
