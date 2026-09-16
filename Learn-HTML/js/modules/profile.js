@@ -50,9 +50,38 @@ window.HTMLMaster.modules.Profile = (function() {
             <div class="emoji-picker" id="emojiPicker"></div>
           </div>
 
-          <button class="btn" style="width: 100%; margin-top: 14px; padding: 12px;" onclick="window.HTMLMaster.modules.Profile.handleLogin()">
-            Register &amp; Start Learning &rarr;
+          <button class="btn" style="width: 100%; margin-top: 14px; padding: 12px;" onclick="window.HTMLMaster.modules.Profile.requestRegistrationOtp()">
+            Send Registration OTP &rarr;
           </button>
+          <div id="registrationOtpArea" style="display: none; margin-top: 12px;">
+            <div class="field">
+              <label for="registrationOtp">Email OTP</label>
+              <input id="registrationOtp" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" />
+            </div>
+            <button class="btn ghost" style="width: 100%; padding: 12px;" onclick="window.HTMLMaster.modules.Profile.verifyRegistrationOtp()">
+              Verify &amp; Create Profile
+            </button>
+          </div>
+
+          <div style="margin: 24px 0 16px; border-top: 1px solid var(--border);"></div>
+          <h3 style="margin: 0 0 6px;">Returning Learner?</h3>
+          <p style="margin: 0 0 12px;">Log in with the email you used when you registered.</p>
+          <div class="field">
+            <label for="returningEmail">Registered Email</label>
+            <input id="returningEmail" type="email" placeholder="e.g. rahul@gmail.com" autocomplete="email" />
+          </div>
+          <button class="btn ghost" style="width: 100%; margin-top: 4px; padding: 12px;" onclick="window.HTMLMaster.modules.Profile.requestLoginOtp()">
+            Send Login OTP &rarr;
+          </button>
+          <div id="loginOtpArea" style="display: none; margin-top: 12px;">
+            <div class="field">
+              <label for="loginOtp">Email OTP</label>
+              <input id="loginOtp" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" />
+            </div>
+            <button class="btn ghost" style="width: 100%; padding: 12px;" onclick="window.HTMLMaster.modules.Profile.verifyLoginOtp()">
+              Verify &amp; Log In
+            </button>
+          </div>
         </div>
       `;
 
@@ -73,7 +102,7 @@ window.HTMLMaster.modules.Profile = (function() {
       if (inp) {
         inp.focus();
         inp.addEventListener("keydown", ev => {
-          if (ev.key === "Enter") handleLogin();
+          if (ev.key === "Enter") requestRegistrationOtp();
         });
       }
       return;
@@ -198,7 +227,7 @@ window.HTMLMaster.modules.Profile = (function() {
     renderNavUser();
   }
 
-  function handleLogin() {
+  async function requestRegistrationOtp() {
     const inpName = document.getElementById("inpName");
     const inpEmail = document.getElementById("inpEmail");
     const inpPhone = document.getElementById("inpPhone");
@@ -234,11 +263,93 @@ window.HTMLMaster.modules.Profile = (function() {
       return;
     }
 
-    window.HTMLMaster.modules.Storage.createUser(name, pickedEmoji, email, phone, dob);
-    window.HTMLMaster.modules.Toast.show(`Welcome, ${name}! Profile created successfully! 🚀`, "success");
+    await requestOtp({ email, purpose: "register", name, phone, dob }, "registrationOtpArea", "Registration code sent to your email.");
+  }
+
+  async function verifyRegistrationOtp() {
+    const email = document.getElementById("inpEmail").value.trim();
+    const otp = document.getElementById("registrationOtp").value.trim();
+    const result = await verifyOtp({ email, purpose: "register", otp });
+    if (!result) return;
+
+    const profile = result.user;
+    window.HTMLMaster.modules.Storage.createUser(profile.name, pickedEmoji, profile.email, profile.phone, profile.dob);
+    window.HTMLMaster.modules.Toast.show(`Welcome, ${profile.name}! Profile created successfully!`, "success");
     renderProfile();
     renderNavUser();
     window.HTMLMaster.modules.Topics.renderHome();
+  }
+
+  async function requestLoginOtp() {
+    const input = document.getElementById("returningEmail");
+    const email = (input ? input.value : "").trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      alert("Please enter the email address you used to register.");
+      if (input) input.focus();
+      return;
+    }
+    await requestOtp({ email, purpose: "login" }, "loginOtpArea", "Login code sent to your email.");
+  }
+
+  async function verifyLoginOtp() {
+    const email = document.getElementById("returningEmail").value.trim().toLowerCase();
+    const otp = document.getElementById("loginOtp").value.trim();
+    const result = await verifyOtp({ email, purpose: "login", otp });
+    if (!result) return;
+
+    const serverUser = result.user;
+    const localUser = window.HTMLMaster.modules.Storage.getUsers().find(u =>
+      (u.email || "").trim().toLowerCase() === email
+    );
+    if (localUser) {
+      window.HTMLMaster.modules.Storage.setCurrentUserId(localUser.id);
+    } else {
+      window.HTMLMaster.modules.Storage.createUser(serverUser.name, pickedEmoji, serverUser.email, serverUser.phone, serverUser.dob);
+    }
+    window.HTMLMaster.modules.Toast.show(`Welcome back, ${serverUser.name}!`, "success");
+    renderProfile();
+    renderNavUser();
+    window.HTMLMaster.modules.Topics.renderHome();
+  }
+
+  async function requestOtp(payload, areaId, message) {
+    try {
+      const response = await fetch("/api/auth/request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const body = await readApiResponse(response);
+      if (!response.ok) throw new Error(body.error || "Could not send the OTP.");
+      document.getElementById(areaId).style.display = "block";
+      window.HTMLMaster.modules.Toast.show(message, "success");
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  async function verifyOtp(payload) {
+    try {
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const body = await readApiResponse(response);
+      if (!response.ok) throw new Error(body.error || "Could not verify the OTP.");
+      return body;
+    } catch (error) {
+      alert(error.message);
+      return null;
+    }
+  }
+
+  async function readApiResponse(response) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      throw new Error("The authentication server is not running. Start the app with npm start after configuring .env.");
+    }
+    return response.json();
   }
 
   function changeAvatar() {
@@ -309,7 +420,10 @@ window.HTMLMaster.modules.Profile = (function() {
     openProfile: openProfile,
     renderProfile: renderProfile,
     renderNavUser: renderNavUser,
-    handleLogin: handleLogin,
+    requestRegistrationOtp: requestRegistrationOtp,
+    verifyRegistrationOtp: verifyRegistrationOtp,
+    requestLoginOtp: requestLoginOtp,
+    verifyLoginOtp: verifyLoginOtp,
     changeAvatar: changeAvatar,
     logout: logout
   };

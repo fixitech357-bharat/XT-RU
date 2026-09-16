@@ -26,11 +26,19 @@ window.HTMLMaster.modules.Leaderboard = (function() {
     renderLeaderboard();
   }
 
-  function renderLeaderboard() {
+  async function renderLeaderboard() {
     const Storage = window.HTMLMaster.modules.Storage;
-    const users = Storage.getUsers().slice().sort(compareUsers);
+    let users = Storage.getUsers().slice();
     const area = document.getElementById("leaderboardArea");
     const curId = Storage.getCurrentUserId();
+
+    try {
+      const remoteUsers = await Storage.loadLeaderboardUsers();
+      if (remoteUsers.length) users = remoteUsers;
+    } catch (e) {
+      // Keep the cached leaderboard visible when the API is unavailable.
+    }
+    users.sort(compareUsers);
 
     if (users.length === 0) {
       area.innerHTML = `

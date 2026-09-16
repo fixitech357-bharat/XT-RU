@@ -31,6 +31,26 @@ window.HTMLMaster.modules.Storage = (function() {
     } catch (e) {}
   }
 
+  function syncUser(user) {
+    if (!user || !user.email) return;
+    fetch(`/api/learners/${encodeURIComponent(user.email)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(user)
+    }).catch(() => {});
+  }
+
+  function syncAllUsers() {
+    getUsers().forEach(syncUser);
+  }
+
+  async function loadLeaderboardUsers() {
+    const response = await fetch("/api/leaderboard");
+    if (!response.ok) throw new Error("Leaderboard request failed");
+    const body = await response.json();
+    return Array.isArray(body.users) ? body.users : [];
+  }
+
   function getCurrentUserId() {
     try {
       return localStorage.getItem(CURRENT_KEY) || null;
@@ -59,6 +79,7 @@ window.HTMLMaster.modules.Storage = (function() {
     if (idx < 0) return null;
     users[idx] = Object.assign({}, users[idx], patch);
     saveUsers(users);
+    syncUser(users[idx]);
     return users[idx];
   }
 
@@ -91,6 +112,7 @@ window.HTMLMaster.modules.Storage = (function() {
     }
     saveUsers(users);
     setCurrentUserId(user.id);
+    syncUser(user);
     return user;
   }
 
@@ -187,6 +209,7 @@ window.HTMLMaster.modules.Storage = (function() {
       date: new Date().toISOString()
     });
     saveUsers(users);
+    syncUser(users[idx]);
 
     unlockAchievement("first_quiz");
     checkProgAchievements();
@@ -204,6 +227,7 @@ window.HTMLMaster.modules.Storage = (function() {
       users[idx].exam = { score: score, total: total, date: new Date().toISOString() };
     }
     saveUsers(users);
+    syncUser(users[idx]);
 
     const pct = Math.round((score / total) * 100);
     if (pct >= 70) unlockAchievement("exam_passed");
@@ -347,6 +371,9 @@ window.HTMLMaster.modules.Storage = (function() {
   return {
     escapeHTML: escapeHTML,
     getUsers: getUsers,
+    syncUser: syncUser,
+    syncAllUsers: syncAllUsers,
+    loadLeaderboardUsers: loadLeaderboardUsers,
     saveUsers: saveUsers,
     getCurrentUserId: getCurrentUserId,
     setCurrentUserId: setCurrentUserId,

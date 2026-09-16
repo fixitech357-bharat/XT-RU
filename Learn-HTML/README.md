@@ -88,12 +88,25 @@ vercel
 
 ## 💻 Local Development
 
-Run locally using any static file server:
+For OTP login and registration, run the Node server so it can connect to MongoDB and SMTP:
+
+```bash
+# Create .env from .env.example and fill in your MongoDB URI, database name,
+# OTP secret, and Gmail SMTP app password.
+npm install
+npm start
+```
+
+The server starts MongoDB-backed authentication before listening on `http://localhost:3001`.
+OTP codes expire after 10 minutes and are stored hashed in the `email_otps` collection.
+Learner records are stored in the `learners` collection.
+
+Without OTP authentication, the static site can still be run using any static file server:
 ```bash
 # With Node.js / npx
-npx serve . -p 3000
+npx serve . -p 3001
 
 # Or with Python
-python -m http.server 3000
+python -m http.server 3001
 ```
 Or simply double-click `index.html` to open it in Google Chrome, Microsoft Edge, Firefox, or Safari!

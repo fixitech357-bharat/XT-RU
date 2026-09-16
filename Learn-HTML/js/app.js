@@ -68,6 +68,15 @@ window.HTMLMaster = window.HTMLMaster || {};
 
   // Initialize on DOM load
   function init() {
+    const Storage = window.HTMLMaster.modules.Storage;
+    const currentUser = Storage.getCurrentUser();
+    Storage.syncAllUsers();
+
+    // Clear the profile created by older builds so first launch can show registration.
+    if (currentUser && currentUser.name === "Learner" && !currentUser.email && !currentUser.phone && !currentUser.dob) {
+      Storage.logoutUser();
+    }
+
     // Check sound state
     const soundBtn = document.getElementById("soundToggleBtn");
     if (soundBtn && window.HTMLMaster.modules.Sound.isMuted()) {
@@ -83,11 +92,10 @@ window.HTMLMaster = window.HTMLMaster || {};
       window.HTMLMaster.modules.Background.init();
     }
 
-    // Auto-create default guest profile if none exists
-    if (!window.HTMLMaster.modules.Storage.getCurrentUser()) {
-      window.HTMLMaster.modules.Storage.createUser("Learner", "🧑💻");
-      window.HTMLMaster.modules.Profile.renderNavUser();
+    if (!Storage.getCurrentUser()) {
+      window.HTMLMaster.modules.Profile.openProfile();
     }
+
   }
 
   if (document.readyState === "loading") {

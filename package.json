@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix Learn-HTML start",
+    "dev": "npm --prefix Learn-HTML dev",
+    "check": "npm --prefix Learn-HTML run check"
+  }
+}

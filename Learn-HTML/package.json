@@ -4,8 +4,8 @@
   "description": "Interactive HTML Learning Platform with Quizzes, Coding Challenges, Live Playground, Tag Cheatsheet, and Canvas Certificate Generator.",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve . -p 3000",
-    "dev": "npx serve . -p 3000",
+    "start": "node server.js",
+    "dev": "node server.js",
     "seed": "node scripts/seed.js",
     "test": "node scripts/test-games.js",
     "check": "node -e \"const fs=require('fs'),cp=require('child_process');['js/data','js/modules','js'].forEach(d=>fs.readdirSync(d).filter(f=>f.endsWith('.js')).forEach(f=>cp.execSync('node -c '+d+'/'+f)));console.log('All JS files syntax OK!')\""
@@ -22,6 +22,9 @@
   "author": "HTML Master Team",
   "license": "MIT",
   "dependencies": {
-    "mongodb": "^7.6.0"
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongodb": "^7.6.0",
+    "nodemailer": "^10.0.10"
   }
 }
